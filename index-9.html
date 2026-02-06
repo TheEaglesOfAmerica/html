@@ -82,6 +82,34 @@
             --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
+        /* Mobile tap highlight */
+        @media (max-width: 768px) {
+            a, button { -webkit-tap-highlight-color: rgba(232, 185, 49, 0.15); }
+        }
+
+        /* Loading shimmer for stat badges */
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .stat-badge.loading {
+            background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.06) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s ease infinite;
+            min-width: 70px;
+        }
+
+        /* Respect reduced motion preference */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            html { scroll-behavior: auto; }
+        }
+
         /* Custom Cursor */
         .cursor-dot {
             width: 8px;
@@ -924,13 +952,15 @@
         /* === RESPONSIVE === */
         @media (max-width: 1024px) {
             .games-grid { grid-template-columns: repeat(2, 1fr); }
-            .games-grid .game-card:last-child { grid-column: 1 / -1; max-width: 65%; justify-self: center; }
+            .games-grid .game-card:last-child { grid-column: 1 / -1; max-width: 100%; }
             .metrics-grid { grid-template-columns: repeat(3, 1fr); }
         }
 
         @media (max-width: 768px) {
             .cursor-dot { display: none; }
             html, body, a, button { cursor: auto; }
+
+            body { overflow-x: hidden; }
 
             .menu-toggle { display: flex; }
 
@@ -954,22 +984,36 @@
             .nav-links a {
                 font-size: 1.1rem;
                 padding: 0.75rem 1.5rem;
+                min-height: 44px;
+                display: flex;
+                align-items: center;
             }
 
             nav { padding: 1rem 5%; }
 
+            .hero { padding: 6rem 5% 4rem; min-height: auto; }
+            .hero h1 { font-size: clamp(2.2rem, 8vw, 3.5rem); }
+            .hero-description { font-size: 0.95rem; margin-bottom: 2rem; }
+
             .games-grid { grid-template-columns: 1fr; }
             .games-grid .game-card:last-child { max-width: 100%; }
-            .metrics-grid { grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+            .metrics-grid { grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+            .metric { padding: 1.25rem 0.75rem; }
+            .metric-value { font-size: 1.5rem; }
+            .metric-label { font-size: 0.65rem; }
 
-            section { padding: 4.5rem 5%; }
+            section { padding: 4rem 5%; }
 
-            .section-header { margin-bottom: 3rem; }
+            .section-header { margin-bottom: 2.5rem; }
+            .section-header h2 { font-size: clamp(1.5rem, 5vw, 2rem); }
 
             .game-card { aspect-ratio: 16/11; }
-            .game-content { padding: 1.5rem; }
-            .game-title { font-size: 1.2rem; }
-            .game-desc { font-size: 0.82rem; }
+            .game-content { padding: 1.25rem; }
+            .game-title { font-size: 1.15rem; }
+            .game-desc { font-size: 0.8rem; margin-bottom: 0.75rem; }
+            .game-genre { font-size: 0.65rem; margin-bottom: 0.4rem; }
+            .stat-badge { padding: 0.3rem 0.6rem; font-size: 0.7rem; }
+            .play-btn { width: 48px; height: 48px; font-size: 1.2rem; }
 
             .hero-stats {
                 gap: 2rem;
@@ -979,17 +1023,34 @@
 
             .hero-stat-value { font-size: 1.4rem; }
 
+            .contact-card { padding: 2rem 1.25rem; }
+            .contact-link { padding: 0.75rem 1rem; min-height: 48px; font-size: 0.85rem; }
+            .location { font-size: 0.82rem; }
+
             .footer-bottom { flex-direction: column; gap: 1rem; text-align: center; }
-            .contact-card { padding: 2rem 1.5rem; }
         }
 
         @media (max-width: 480px) {
+            .hero { padding: 5rem 4% 3rem; }
+            .hero h1 { font-size: clamp(1.8rem, 9vw, 2.5rem); }
+            .hero-badge { font-size: 0.6rem; padding: 0.4rem 0.9rem; margin-bottom: 1.5rem; }
+            .hero-description { font-size: 0.88rem; }
             .hero-stats { gap: 1.25rem; }
             .hero-actions { flex-direction: column; width: 100%; }
-            .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
+            .btn-primary, .btn-secondary { width: 100%; justify-content: center; min-height: 48px; }
+            .metrics-grid { grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; }
+            .metric-value { font-size: 1.25rem; }
+            .metric-label { font-size: 0.6rem; letter-spacing: 0.05em; }
+            .game-card { aspect-ratio: 16/12; }
+            .game-content { padding: 1rem; }
+            .game-title { font-size: 1.05rem; }
+            .game-desc { font-size: 0.75rem; -webkit-line-clamp: 1; }
             .contact-links { flex-direction: column; align-items: center; }
             .contact-link { width: 100%; justify-content: center; }
+            .section-header h2 { font-size: clamp(1.3rem, 6vw, 1.75rem); }
+            .section-header p { font-size: 0.85rem; }
             .footer-bottom { flex-direction: column; gap: 1rem; text-align: center; }
+            .footer-bottom p { font-size: 0.8rem; }
         }
 
         /* === ENHANCED CONTACT === */
@@ -1217,7 +1278,7 @@
                 </div>
                 <div class="location">
                     <span>📍</span>
-                    <span>Based in the United States</span>
+                    <span>Based in Seattle</span>
                 </div>
             </div>
         </div>
@@ -1359,23 +1420,21 @@
         });
 
         // === Roblox API: Fetch live game data ===
-        (async function fetchRobloxData() {
-            // Universe IDs mapped to card order: Skydive, McRonalds, Shimmer Bay
-            const universeIds = [6589241758, 6169297188, 5914034409];
-            
+        const universeIds = [6589241758, 6169297188, 5914034409];
+        let isFirstFetch = true;
+
+        async function fetchRobloxData() {
             try {
                 const gamesRes = await fetch(`/api/roblox/v1/games?universeIds=${universeIds.join(',')}`);
                 const gamesData = await gamesRes.json();
                 
                 if (!gamesData.data || gamesData.data.length === 0) return;
                 
-                // Build lookup: universeId -> game data
                 const gameById = {};
                 for (const game of gamesData.data) {
                     gameById[game.id] = game;
                 }
                 
-                // Update game cards with real data
                 const cards = document.querySelectorAll('.game-card');
                 let totalVisits = 0;
                 let totalPlaying = 0;
@@ -1387,8 +1446,8 @@
                     totalVisits += game.visits || 0;
                     totalPlaying += game.playing || 0;
                     
-                    // Update stats badges
                     const badges = cards[i].querySelectorAll('.stat-badge');
+                    badges.forEach(b => b.classList.remove('loading'));
                     if (badges[0]) {
                         const icon0 = badges[0].querySelector('.stat-icon');
                         badges[0].innerHTML = '';
@@ -1403,48 +1462,45 @@
                     }
                 });
                 
-                // Update hero stats + metrics with real totals
                 const heroStatValues = document.querySelectorAll('.hero-stat-value');
                 if (heroStatValues[0]) {
                     heroStatValues[0].innerHTML = '<span class="accent">' + formatNumber(totalPlaying) + '</span>';
                     heroStatValues[0].closest('.hero-stat').querySelector('.hero-stat-label').textContent = 'Playing Now';
                 }
                 
-                // Update metrics section data-target for animated counters
-                const metricEls = document.querySelectorAll('.metric-value[data-target]');
-                if (metricEls[0] && totalPlaying > 0) {
-                    metricEls[0].dataset.target = totalPlaying;
-                    metricEls[0].dataset.suffix = '';
-                    metricEls[0].textContent = '0';
-                    metricEls[0].closest('.metric').querySelector('.metric-label').textContent = 'Playing Now';
-                }
-                if (metricEls[2] && totalVisits > 0) {
-                    let visitDisplay, visitSuffix;
-                    if (totalVisits >= 1e9) {
-                        visitDisplay = Math.round(totalVisits / 1e9);
-                        visitSuffix = 'B+';
-                    } else if (totalVisits >= 1e6) {
-                        visitDisplay = Math.round(totalVisits / 1e6);
-                        visitSuffix = 'M+';
-                    } else if (totalVisits >= 1e3) {
-                        visitDisplay = Math.round(totalVisits / 1e3);
-                        visitSuffix = 'K+';
-                    } else {
-                        visitDisplay = totalVisits;
-                        visitSuffix = '';
+                if (isFirstFetch) {
+                    const metricEls = document.querySelectorAll('.metric-value[data-target]');
+                    if (metricEls[0] && totalPlaying > 0) {
+                        metricEls[0].dataset.target = totalPlaying;
+                        metricEls[0].dataset.suffix = '';
+                        metricEls[0].textContent = '0';
+                        metricEls[0].closest('.metric').querySelector('.metric-label').textContent = 'Playing Now';
                     }
-                    metricEls[2].dataset.target = visitDisplay;
-                    metricEls[2].dataset.suffix = visitSuffix;
-                    metricEls[2].textContent = '0';
+                    if (metricEls[2] && totalVisits > 0) {
+                        let visitDisplay, visitSuffix;
+                        if (totalVisits >= 1e9) { visitDisplay = Math.round(totalVisits / 1e9); visitSuffix = 'B+'; }
+                        else if (totalVisits >= 1e6) { visitDisplay = Math.round(totalVisits / 1e6); visitSuffix = 'M+'; }
+                        else if (totalVisits >= 1e3) { visitDisplay = Math.round(totalVisits / 1e3); visitSuffix = 'K+'; }
+                        else { visitDisplay = totalVisits; visitSuffix = ''; }
+                        metricEls[2].dataset.target = visitDisplay;
+                        metricEls[2].dataset.suffix = visitSuffix;
+                        metricEls[2].textContent = '0';
+                    }
+                    metricEls.forEach(el => counterObs.observe(el));
+                    isFirstFetch = false;
                 }
-                
-                // Re-observe metrics for counter animation
-                metricEls.forEach(el => counterObs.observe(el));
                 
             } catch (err) {
                 console.log('Roblox API unavailable, using fallback stats');
             }
-        })();
+        }
+
+        // Add loading shimmer to stat badges
+        document.querySelectorAll('.stat-badge').forEach(b => b.classList.add('loading'));
+
+        // Fetch immediately, then refresh every 10 seconds
+        fetchRobloxData();
+        setInterval(fetchRobloxData, 10000);
         
         function formatNumber(n) {
             if (n >= 1e9) return (n / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
