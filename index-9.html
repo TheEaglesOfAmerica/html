@@ -1099,25 +1099,27 @@
         /* Back to top */
         .back-to-top {
             position: fixed;
-            bottom: 5.5rem; right: 2.25rem;
-            width: 44px; height: 44px;
+            bottom: 2rem; right: 2rem;
+            width: 52px; height: 52px;
             background: var(--accent);
-            border-radius: var(--radius-sm);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             color: var(--primary-bg);
             opacity: 0; visibility: hidden;
             transform: translateY(15px);
             transition: all 0.4s var(--ease-out);
-            z-index: 1000;
-            box-shadow: 0 8px 20px var(--accent-glow);
+            z-index: 10001;
+            box-shadow: 0 8px 24px var(--accent-glow);
             text-decoration: none;
         }
 
         .back-to-top.visible { opacity: 1; visibility: visible; transform: translateY(0); }
         .back-to-top:hover { transform: translateY(-3px); box-shadow: 0 12px 30px var(--accent-glow); }
+        /* When chat toggle is present, back-to-top stacks above it */
+        body.btt-shift .back-to-top.visible { bottom: calc(2rem + 60px); }
 
         /* Reveal animations */
         .reveal {
@@ -1383,9 +1385,9 @@
         .chat-header-dot {
             width: 8px;
             height: 8px;
-            background: var(--green-accent);
+            background: var(--accent);
             border-radius: 50%;
-            box-shadow: 0 0 8px rgba(93,255,162,0.5);
+            box-shadow: 0 0 8px var(--accent-glow);
             animation: pulse 2s ease-in-out infinite;
         }
         .chat-header-title {
@@ -1438,7 +1440,6 @@
         .chat-typing {
             display: flex;
             align-items: center;
-            gap: 0.6rem;
             padding: 0.7rem 1rem;
             align-self: flex-start;
             max-width: 65%;
@@ -1449,7 +1450,7 @@
             border-radius: 3px;
             background: rgba(255,255,255,0.06);
             overflow: hidden;
-            min-width: 80px;
+            min-width: 100px;
         }
         .chat-typing-bar::after {
             content: '';
@@ -1457,27 +1458,8 @@
             height: 100%;
             width: 40%;
             border-radius: 3px;
-            background: linear-gradient(90deg, transparent, var(--accent), var(--accent-secondary), transparent);
-            animation: chatShimmer 1.2s ease-in-out infinite;
-        }
-        .chat-typing-dots {
-            display: flex;
-            gap: 3px;
-        }
-        .chat-typing-dots span {
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background: var(--accent);
-            opacity: 0.3;
-            animation: typingDot 1.4s ease-in-out infinite;
-        }
-        .chat-typing-dots span:nth-child(2) { animation-delay: 0.15s; }
-        .chat-typing-dots span:nth-child(3) { animation-delay: 0.3s; }
-
-        @keyframes typingDot {
-            0%, 60%, 100% { opacity: 0.3; transform: scale(1); }
-            30% { opacity: 1; transform: scale(1.3); }
+            background: linear-gradient(90deg, transparent, var(--accent), #f0d060, var(--accent-secondary), #ff6b6b, var(--accent), transparent);
+            animation: chatShimmer 1.4s ease-in-out infinite;
         }
         @keyframes chatShimmer {
             0% { transform: translateX(-100%); }
@@ -1546,6 +1528,12 @@
             }
             .chat-toggle {
                 bottom: 1.25rem;
+                right: 1.25rem;
+                width: 48px;
+                height: 48px;
+            }
+            body.btt-shift .back-to-top.visible {
+                bottom: calc(1.25rem + 56px);
                 right: 1.25rem;
                 width: 48px;
                 height: 48px;
@@ -1774,7 +1762,7 @@
             <span class="chat-header-subtitle">Online</span>
         </div>
         <div class="chat-messages" id="chatMessages">
-            <div class="chat-msg ai">Hey! 👋 I'm the Luminary AI assistant. Ask me anything about our games or services.</div>
+            <div class="chat-msg ai">Hey! 👋 I'm the <span class="gradient-animated">Luminary</span> AI assistant. Ask me anything about our games or services.</div>
         </div>
         <div class="chat-input-area">
             <input type="text" class="chat-input clickable" id="chatInput" placeholder="Type a message..." autocomplete="off">
@@ -2054,6 +2042,9 @@
             const chatHistory = [];
             let isStreaming = false;
 
+            // Always signal that chat button exists so back-to-top stacks above
+            document.body.classList.add('btt-shift');
+
             toggle.addEventListener('click', () => {
                 toggle.classList.toggle('open');
                 panel.classList.toggle('open');
@@ -2075,7 +2066,7 @@
                 const t = document.createElement('div');
                 t.className = 'chat-typing';
                 t.id = 'chatTyping';
-                t.innerHTML = '<div class="chat-typing-bar"></div><div class="chat-typing-dots"><span></span><span></span><span></span></div>';
+                t.innerHTML = '<div class="chat-typing-bar"></div>';
                 messages.appendChild(t);
                 messages.scrollTop = messages.scrollHeight;
                 return t;
@@ -2130,6 +2121,10 @@
                     const aiMsg = addMessage('', 'ai');
                     let fullText = '';
 
+                    function renderWithGradient(text) {
+                        return text.replace(/(Luminary|LUMINARY)/gi, '<span class="gradient-animated">$1</span>');
+                    }
+
                     while (true) {
                         const { done, value } = await reader.read();
                         if (done) break;
@@ -2142,7 +2137,7 @@
                                 const parsed = JSON.parse(data);
                                 const token = parsed.choices?.[0]?.delta?.content || '';
                                 fullText += token;
-                                aiMsg.textContent = fullText;
+                                aiMsg.innerHTML = renderWithGradient(fullText.replace(/</g,'&lt;').replace(/>/g,'&gt;'));
                                 messages.scrollTop = messages.scrollHeight;
                             } catch(e) {}
                         }
