@@ -1768,6 +1768,35 @@
             if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
             return n.toString();
         }
+
+        // === HDR Toggle ===
+        const hdrToggle = document.getElementById('hdrToggle');
+        const hdrIcon = document.getElementById('hdrIcon');
+        const hdrLabel = document.getElementById('hdrLabel');
+
+        // Restore saved preference
+        if (localStorage.getItem('hdr') === 'off') {
+            document.documentElement.classList.add('no-hdr');
+            hdrIcon.textContent = '☀️';
+            hdrLabel.textContent = 'HDR Off';
+        }
+
+        hdrToggle.addEventListener('click', () => {
+            const isHDR = !document.documentElement.classList.contains('no-hdr');
+            document.documentElement.classList.toggle('no-hdr', isHDR);
+            hdrIcon.textContent = isHDR ? '☀️' : '🌙';
+            hdrLabel.textContent = isHDR ? 'HDR Off' : 'HDR On';
+            localStorage.setItem('hdr', isHDR ? 'off' : 'on');
+        });
+
+        // === Page load fade-in ===
+        window.addEventListener('load', () => {
+            requestAnimationFrame(() => {
+                document.body.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                document.body.style.opacity = '1';
+                document.body.style.transform = 'translateY(0)';
+            });
+        });
     </script>
 </body>
 </html>
