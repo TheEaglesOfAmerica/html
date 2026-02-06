@@ -76,7 +76,7 @@ app.post('/api/chat', async (req, res) => {
         model: 'gpt-5-mini',
         messages: openaiMessages,
         stream: true,
-        max_completion_tokens: 512,
+        max_tokens: 512,
         temperature: 1
       })
     });
