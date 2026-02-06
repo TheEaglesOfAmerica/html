@@ -307,7 +307,23 @@
             background: rgba(5, 5, 5, 0.88);
             backdrop-filter: blur(24px) saturate(180%);
             -webkit-backdrop-filter: blur(24px) saturate(180%);
-            border-bottom: 1px solid var(--border-subtle);
+            border-bottom: 1px solid transparent;
+        }
+
+        nav.scrolled::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), var(--green-accent), var(--accent), transparent);
+            opacity: 0;
+            animation: navGlow 0.6s var(--ease-out) forwards;
+        }
+
+        @keyframes navGlow {
+            to { opacity: 0.5; }
         }
 
         .logo {
@@ -751,6 +767,38 @@
             margin-top: 0.5rem;
         }
 
+        /* === SCROLL INDICATOR === */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            animation: scrollBounce 2.5s ease-in-out infinite;
+            transition: opacity 0.4s ease;
+            z-index: 5;
+        }
+
+        .scroll-indicator .scroll-line {
+            width: 1px;
+            height: 24px;
+            background: linear-gradient(to bottom, var(--accent), transparent);
+            border-radius: 1px;
+        }
+
+        @keyframes scrollBounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.4; }
+            50% { transform: translateX(-50%) translateY(8px); opacity: 0.8; }
+        }
+
         /* === GAMES === */
         .games { background: var(--primary-bg); }
 
@@ -760,6 +808,7 @@
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 1.5rem;
+            perspective: 1200px;
         }
 
         .game-card {
@@ -772,6 +821,8 @@
             display: block;
             text-decoration: none;
             color: inherit;
+            transform-style: preserve-3d;
+            will-change: transform;
         }
 
         .game-card-bg {
@@ -1392,6 +1443,10 @@
                 </div>
             </div>
         </div>
+        <div class="scroll-indicator" id="scrollIndicator">
+            <span>Scroll</span>
+            <div class="scroll-line"></div>
+        </div>
     </section>
 
 
@@ -1524,7 +1579,7 @@
     <!-- Footer -->
     <footer class="footer-main">
         <div class="footer-bottom">
-            <p>© 2026 <span class="gradient-animated">Luminary</span> Ventures</p>
+            <p>🌧️ Based in Seattle · © 2026 <span class="gradient-animated">Luminary</span> Ventures</p>
         </div>
     </footer>
 
@@ -1797,6 +1852,31 @@
                 btn.style.transform = '';
             });
         });
+
+        // === 3D tilt on game cards ===
+        document.querySelectorAll('.game-card').forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width;
+                const y = (e.clientY - rect.top) / rect.height;
+                const tiltX = (y - 0.5) * -12;
+                const tiltY = (x - 0.5) * 12;
+                card.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) translateY(-8px) scale(1.02)`;
+                card.style.borderColor = 'var(--border-hover)';
+                card.style.boxShadow = '0 25px 50px rgba(0,0,0,0.35), 0 0 80px rgba(232,185,49,0.06)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = '';
+                card.style.borderColor = '';
+                card.style.boxShadow = '';
+            });
+        });
+
+        // === Hide scroll indicator on scroll ===
+        const scrollInd = document.getElementById('scrollIndicator');
+        window.addEventListener('scroll', () => {
+            if (scrollInd) scrollInd.style.opacity = window.scrollY > 100 ? '0' : '';
+        }, { passive: true });
 
     </script>
 </body>
