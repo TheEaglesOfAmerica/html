@@ -77,7 +77,7 @@ async function generateSubject(name, message) {
           { role: 'system', content: 'Generate a short, professional email subject line (max 8 words) for a business inquiry. Return ONLY the subject line, no quotes or extra text.' },
           { role: 'user', content: `From: ${name}\nMessage: ${message}` }
         ],
-        max_completion_tokens: 30,
+        max_completion_tokens: 2048,
         temperature: 1,
       })
     });
@@ -99,6 +99,7 @@ app.post('/api/contact', async (req, res) => {
       return res.status(400).json({ error: 'All fields are required' });
     }
     const subject = await generateSubject(name, message);
+    // Send to luminariaHQ
     await transporter.sendMail({
       from: `"${name}" <noreply@luminariahq.com>`,
       replyTo: email,
@@ -106,6 +107,14 @@ app.post('/api/contact', async (req, res) => {
       subject,
       text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
       html: `<p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> ${email}</p><hr><p>${message.replace(/\n/g, '<br>')}</p>`
+    });
+    // Send confirmation to the user
+    await transporter.sendMail({
+      from: '"luminariaHQ" <noreply@luminariahq.com>',
+      to: email,
+      subject: `We got your message — ${subject}`,
+      text: `Hey ${name},\n\nThanks for reaching out to luminariaHQ! We received your message and will get back to you soon.\n\nHere's a copy of what you sent:\n\n${message}\n\n— The luminariaHQ Team\nhttps://luminariahq.com`,
+      html: `<div style="font-family:system-ui,sans-serif;max-width:560px;margin:0 auto;padding:2rem;color:#e0e0e0;background:#0a0a0a;border-radius:12px;"><h2 style="color:#fff;margin:0 0 0.5rem;">Thanks for reaching out, ${name}! ✨</h2><p style="color:#999;margin:0 0 1.5rem;">We received your message and will get back to you soon.</p><div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:1.25rem;margin-bottom:1.5rem;"><p style="color:#999;font-size:0.85rem;margin:0 0 0.5rem;">Your message:</p><p style="color:#e0e0e0;margin:0;line-height:1.6;">${message.replace(/\n/g, '<br>')}</p></div><p style="color:#666;font-size:0.85rem;margin:0;">— The luminariaHQ Team · <a href="https://luminariahq.com" style="color:#6366f1;">luminariahq.com</a></p></div>`
     });
     res.json({ ok: true });
   } catch (err) {
