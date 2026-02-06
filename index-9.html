@@ -1283,6 +1283,53 @@
             margin-top: 1.5rem;
         }
 
+        .contact-form {
+            width: 100%;
+            max-width: 480px;
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .contact-form input,
+        .contact-form textarea {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border-subtle);
+            background: rgba(255,255,255,0.03);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+        }
+        .contact-form input::placeholder,
+        .contact-form textarea::placeholder {
+            color: var(--text-muted);
+        }
+        .contact-form input:focus,
+        .contact-form textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+        }
+        .contact-form textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        .contact-form button[type="submit"] {
+            align-self: flex-start;
+            margin-top: 0.25rem;
+        }
+        .form-status {
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+            min-height: 1.2em;
+        }
+        .form-status.success { color: var(--green-accent); }
+        .form-status.error { color: #f87171; }
+
         /* === FOOTER === */
         .footer-main {
             padding: 3rem 5%;
@@ -1592,7 +1639,7 @@
     <section class="hero">
         <div class="hero-content">
             <h1>
-                <span class="line"><span class="line-inner">Crafting <span class="gradient-animated">Luminaria</span></span></span>
+                <span class="line"><span class="line-inner">Crafting <span class="gradient-animated">Luminary</span></span></span>
                 <span class="line"><span class="line-inner">Games</span></span>
             </h1>
             <p class="hero-description">We build quality Roblox experiences that continue to captivate millions, from concept to infinity and beyond.</p>
@@ -1728,7 +1775,7 @@
     <section class="contact" id="contact">
         <div class="contact-inner reveal">
             <span class="section-label">Get Started</span>
-            <h2>Let's Build Something <span class="gradient-animated">Luminaria</span></h2>
+            <h2>Let's Build Something <span class="gradient-animated">Luminary</span></h2>
             <p>Have a game idea or need to scale an existing project? We'd love to hear from you.</p>
             <div class="contact-card">
                 <div class="contact-links">
@@ -1737,6 +1784,13 @@
                         <span>hello@luminariahq.com</span>
                     </a>
                 </div>
+                <form class="contact-form" id="contactForm">
+                    <input type="text" name="name" placeholder="Your name" required>
+                    <input type="email" name="email" placeholder="Your email" required>
+                    <textarea name="message" placeholder="Tell us about your project..." rows="4" required></textarea>
+                    <button type="submit" class="btn-primary clickable">Send Message ✉</button>
+                    <p class="form-status" id="formStatus"></p>
+                </form>
             </div>
         </div>
     </section>
@@ -2052,6 +2106,44 @@
                 if (!tiltRaf) tiltRaf = requestAnimationFrame(tiltLoop);
             });
         });
+
+        // === Contact form ===
+        (function() {
+            const form = document.getElementById('contactForm');
+            const status = document.getElementById('formStatus');
+            if (!form) return;
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = form.querySelector('button[type="submit"]');
+                btn.disabled = true;
+                btn.textContent = 'Sending...';
+                status.textContent = '';
+                status.className = 'form-status';
+                try {
+                    const res = await fetch('/api/contact', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: form.name.value.trim(),
+                            email: form.email.value.trim(),
+                            message: form.message.value.trim()
+                        })
+                    });
+                    if (res.ok) {
+                        status.textContent = 'Message sent! We\'ll be in touch \u2728';
+                        status.classList.add('success');
+                        form.reset();
+                    } else {
+                        throw new Error();
+                    }
+                } catch {
+                    status.textContent = 'Something went wrong. Try emailing us directly.';
+                    status.classList.add('error');
+                }
+                btn.disabled = false;
+                btn.textContent = 'Send Message \u2709';
+            });
+        })();
 
         // === Chat widget UI (GPT-5 powered) ===
         (function() {

@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
+import nodemailer from 'nodemailer';
 
 const app = express();
 const PORT = process.env.CHAT_PORT || 3001;
@@ -53,6 +54,35 @@ GUIDELINES:
 • You can use emojis sparingly to match the site's vibe.
 • Keep responses SHORT — 1-3 sentences when possible, unless the user asks for detail.`;
 }
+
+// ── Contact form endpoint ───────────────────────────────────────────
+const transporter = nodemailer.createTransport({
+  host: 'localhost',
+  port: 25,
+  secure: false,
+  tls: { rejectUnauthorized: false }
+});
+
+app.post('/api/contact', async (req, res) => {
+  try {
+    const { name, email, message } = req.body;
+    if (!name || !email || !message) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+    await transporter.sendMail({
+      from: `"${name}" <noreply@luminariahq.com>`,
+      replyTo: email,
+      to: 'hello@luminariahq.com',
+      subject: `New inquiry from ${name}`,
+      text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
+      html: `<p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> ${email}</p><hr><p>${message.replace(/\n/g, '<br>')}</p>`
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Contact form error:', err);
+    res.status(500).json({ error: 'Failed to send message' });
+  }
+});
 
 // ── Chat endpoint (streaming) ───────────────────────────────────────
 app.post('/api/chat', async (req, res) => {
