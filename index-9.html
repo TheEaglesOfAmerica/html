@@ -1687,7 +1687,7 @@
             const universeIds = [6589241758, 6169297188, 5914034409];
             
             try {
-                const gamesRes = await fetch(`https://games.roblox.com/v1/games?universeIds=${universeIds.join(',')}`);
+                const gamesRes = await fetch(`/api/roblox/v1/games?universeIds=${universeIds.join(',')}`);
                 const gamesData = await gamesRes.json();
                 
                 if (!gamesData.data || gamesData.data.length === 0) return;
