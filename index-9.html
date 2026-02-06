@@ -1388,6 +1388,81 @@
         }
         .form-status.success { color: var(--green-accent); }
         .form-status.error { color: #f87171; }
+        .form-feedback {
+            width: 100%;
+            margin-top: 0.5rem;
+            padding: 1.1rem 1.25rem;
+            border-radius: var(--radius);
+            background: rgba(99,102,241,0.06);
+            border: 1px solid rgba(99,102,241,0.15);
+            display: none;
+            flex-direction: column;
+            gap: 0.75rem;
+            animation: fadeUp 0.35s var(--ease-out);
+        }
+        .form-feedback.visible { display: flex; }
+        .form-feedback-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--accent);
+        }
+        .form-feedback-text {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+        .form-feedback-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        .btn-send-anyway {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.6rem 1.4rem;
+            background: var(--accent);
+            color: var(--primary-bg);
+            border: none;
+            border-radius: 100px;
+            font-weight: 600;
+            font-size: 0.82rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        .btn-send-anyway:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px var(--accent-glow);
+        }
+        .btn-send-anyway:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .btn-edit-msg {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.6rem 1.4rem;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 100px;
+            font-weight: 500;
+            font-size: 0.82rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        .btn-edit-msg:hover {
+            border-color: var(--text-muted);
+            color: var(--text-primary);
+        }
         @media (max-width: 600px) {
             .contact-form .form-row { grid-template-columns: 1fr; }
             .contact-form .form-footer { flex-direction: column; align-items: stretch; }
@@ -1868,6 +1943,14 @@
                         <button type="submit" class="btn-primary clickable"><span>Send Message</span> <span class="cta-arrow">→</span></button>
                         <p class="form-status" id="formStatus"></p>
                     </div>
+                    <div class="form-feedback" id="formFeedback">
+                        <div class="form-feedback-header">🧠 AI Review</div>
+                        <p class="form-feedback-text" id="feedbackText"></p>
+                        <div class="form-feedback-actions">
+                            <button type="button" class="btn-send-anyway" id="sendAnyway">Send Anyway →</button>
+                            <button type="button" class="btn-edit-msg" id="editMsg">✏️ Edit Message</button>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
@@ -2185,33 +2268,45 @@
             });
         });
 
-        // === Contact form ===
+        // === Contact form (AI review step) ===
         (function() {
             const form = document.getElementById('contactForm');
             const status = document.getElementById('formStatus');
+            const feedbackPanel = document.getElementById('formFeedback');
+            const feedbackText = document.getElementById('feedbackText');
+            const sendAnywayBtn = document.getElementById('sendAnyway');
+            const editMsgBtn = document.getElementById('editMsg');
             if (!form) return;
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const btn = form.querySelector('button[type="submit"]');
-                const originalHTML = btn.innerHTML;
+
+            let pendingData = null;
+
+            function getFormData() {
+                return {
+                    name: form.name.value.trim(),
+                    email: form.email.value.trim(),
+                    message: form.message.value.trim()
+                };
+            }
+
+            async function sendMessage(data) {
+                const btn = sendAnywayBtn || form.querySelector('button[type="submit"]');
+                const origText = btn.textContent;
                 btn.disabled = true;
-                btn.innerHTML = '<span>Sending\u2026</span>';
+                btn.textContent = 'Sending…';
                 status.textContent = '';
                 status.className = 'form-status';
                 try {
                     const res = await fetch('/api/contact', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            name: form.name.value.trim(),
-                            email: form.email.value.trim(),
-                            message: form.message.value.trim()
-                        })
+                        body: JSON.stringify(data)
                     });
                     if (res.ok) {
+                        feedbackPanel.classList.remove('visible');
                         status.textContent = 'Message sent! We\u2019ll be in touch \u2728';
                         status.classList.add('success');
                         form.reset();
+                        pendingData = null;
                     } else {
                         throw new Error();
                     }
@@ -2220,7 +2315,46 @@
                     status.classList.add('error');
                 }
                 btn.disabled = false;
+                btn.textContent = origText;
+            }
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = form.querySelector('button[type="submit"]');
+                const originalHTML = btn.innerHTML;
+                const data = getFormData();
+                pendingData = data;
+
+                btn.disabled = true;
+                btn.innerHTML = '<span>Reviewing…</span>';
+                status.textContent = '';
+                status.className = 'form-status';
+                feedbackPanel.classList.remove('visible');
+
+                try {
+                    const res = await fetch('/api/contact/review', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    const result = await res.json();
+                    feedbackText.textContent = result.feedback || 'Your message looks good!';
+                    feedbackPanel.classList.add('visible');
+                } catch {
+                    // If review fails, just send directly
+                    await sendMessage(data);
+                }
+                btn.disabled = false;
                 btn.innerHTML = originalHTML;
+            });
+
+            sendAnywayBtn.addEventListener('click', () => {
+                if (pendingData) sendMessage(pendingData);
+            });
+
+            editMsgBtn.addEventListener('click', () => {
+                feedbackPanel.classList.remove('visible');
+                form.querySelector('textarea').focus();
             });
         })();
 

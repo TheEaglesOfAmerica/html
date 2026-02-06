@@ -96,6 +96,40 @@ async function generateSubject(name, message) {
   return `New inquiry from ${name}`;
 }
 
+app.post('/api/contact/review', async (req, res) => {
+  try {
+    const { name, email, message } = req.body;
+    if (!name || !email || !message) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+    const reviewRes = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENAI_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-5-nano',
+        messages: [
+          { role: 'system', content: `You are a helpful assistant reviewing a contact form submission for luminariaHQ, a Roblox game development studio. Analyze the message and provide brief, friendly feedback (2-4 sentences max). If anything is vague or missing, suggest what they could clarify. If the message is clear and complete, say so positively. Do NOT refuse or block any message. Format: start with a quick assessment, then any suggestions. Keep it casual and helpful. Do not use markdown formatting.` },
+          { role: 'user', content: `Name: ${name}\nEmail: ${email}\nMessage: ${message}` }
+        ],
+        max_completion_tokens: 2048,
+        temperature: 1
+      })
+    });
+    if (reviewRes.ok) {
+      const data = await reviewRes.json();
+      const feedback = data.choices?.[0]?.message?.content?.trim();
+      if (feedback) return res.json({ feedback });
+    }
+    res.json({ feedback: 'Your message looks good to go!' });
+  } catch (err) {
+    console.error('Review error:', err);
+    res.json({ feedback: 'Your message looks good to go!' });
+  }
+});
+
 app.post('/api/contact', async (req, res) => {
   try {
     const { name, email, message } = req.body;
