@@ -474,6 +474,23 @@
             animation: fadeUp 0.8s var(--ease-out) 0.65s forwards;
         }
 
+        /* Hero word-by-word reveal */
+        .hero-description .word {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.45s ease, transform 0.45s ease;
+        }
+        .hero-description .word.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Magnetic button hover effect */
+        .btn-magnetic {
+            transition: transform 0.35s var(--ease-out);
+        }
+
         .hero-actions {
             display: flex;
             gap: 1rem;
@@ -814,6 +831,19 @@
         }
 
         .stat-badge .stat-icon { opacity: 0.8; font-size: 0.75rem; }
+
+        /* Smooth stat number transition */
+        .stat-badge {
+            transition: transform 0.3s ease;
+        }
+        .stat-badge.stat-update {
+            animation: statPulse 0.5s ease;
+        }
+        @keyframes statPulse {
+            0% { transform: scale(1); }
+            40% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
 
         .play-btn {
             position: absolute;
@@ -1224,18 +1254,6 @@
             letter-spacing: 0.01em;
         }
 
-        /* Seattle skyline silhouette */
-        .seattle-skyline {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 80px;
-            z-index: 0;
-            opacity: 0.06;
-            pointer-events: none;
-        }
-
         /* Rain animation */
         .seattle-rain {
             position: absolute;
@@ -1330,11 +1348,11 @@
             </h1>
             <p class="hero-description">We build quality Roblox experiences that continue to captivate millions, from concept to infinity and beyond.</p>
             <div class="hero-actions">
-                <a href="#contact" class="btn-primary clickable">
+                <a href="#contact" class="btn-primary btn-magnetic clickable">
                     <span>Start Your Project</span>
                     <span class="cta-arrow">→</span>
                 </a>
-                <a href="#games" class="btn-secondary clickable">
+                <a href="#games" class="btn-secondary btn-magnetic clickable">
                     <span>View Our Work</span>
                 </a>
             </div>
@@ -1482,41 +1500,6 @@
     <footer class="footer-main">
         <!-- Seattle rain -->
         <div class="seattle-rain" id="seattleRain"></div>
-        <!-- Seattle skyline silhouette -->
-        <svg class="seattle-skyline" viewBox="0 0 1200 80" preserveAspectRatio="xMidYMax slice" fill="currentColor">
-            <!-- Space Needle -->
-            <rect x="580" y="8" width="4" height="6" rx="1"/>
-            <polygon points="565,14 599,14 590,18 574,18"/>
-            <rect x="579" y="18" width="6" height="40"/>
-            <rect x="572" y="58" width="20" height="4" rx="1"/>
-            <!-- Buildings left -->
-            <rect x="300" y="40" width="30" height="40"/>
-            <rect x="335" y="48" width="20" height="32"/>
-            <rect x="360" y="35" width="25" height="45"/>
-            <rect x="390" y="50" width="18" height="30"/>
-            <rect x="412" y="42" width="22" height="38"/>
-            <rect x="440" y="52" width="16" height="28"/>
-            <rect x="460" y="38" width="28" height="42"/>
-            <rect x="492" y="46" width="20" height="34"/>
-            <rect x="516" y="55" width="15" height="25"/>
-            <rect x="535" y="48" width="22" height="32"/>
-            <!-- Buildings right -->
-            <rect x="610" y="45" width="24" height="35"/>
-            <rect x="638" y="52" width="18" height="28"/>
-            <rect x="660" y="38" width="26" height="42"/>
-            <rect x="690" y="48" width="20" height="32"/>
-            <rect x="715" y="42" width="22" height="38"/>
-            <rect x="742" y="55" width="16" height="25"/>
-            <rect x="762" y="44" width="28" height="36"/>
-            <rect x="795" y="50" width="20" height="30"/>
-            <rect x="820" y="40" width="24" height="40"/>
-            <rect x="850" y="52" width="18" height="28"/>
-            <!-- Trees (triangles) -->
-            <polygon points="240,62 248,42 256,62"/>
-            <polygon points="260,62 268,44 276,62"/>
-            <polygon points="880,62 888,44 896,62"/>
-            <polygon points="900,62 908,46 916,62"/>
-        </svg>
         <div class="footer-bottom">
             <p>🌧️ Based in Seattle · © 2026 <span class="gradient-animated">Luminary</span> Ventures</p>
         </div>
@@ -1654,6 +1637,20 @@
         const universeIds = [6589241758, 6169297188, 5914034409];
         let isFirstFetch = true;
 
+        // Helper: update badge with pulse animation on change
+        function updateBadge(badge, text) {
+            const oldText = badge.textContent.trim();
+            const icon = badge.querySelector('.stat-icon');
+            badge.innerHTML = '';
+            if (icon) badge.appendChild(icon);
+            badge.appendChild(document.createTextNode(' ' + text));
+            if (oldText !== (icon ? icon.textContent + ' ' : '') + text) {
+                badge.classList.remove('stat-update');
+                void badge.offsetWidth;
+                badge.classList.add('stat-update');
+            }
+        }
+
         async function fetchRobloxData() {
             try {
                 const gamesRes = await fetch(`/api/roblox/v1/games?universeIds=${universeIds.join(',')}`);
@@ -1680,16 +1677,10 @@
                     const badges = cards[i].querySelectorAll('.stat-badge');
                     badges.forEach(b => b.classList.remove('loading'));
                     if (badges[0]) {
-                        const icon0 = badges[0].querySelector('.stat-icon');
-                        badges[0].innerHTML = '';
-                        if (icon0) badges[0].appendChild(icon0);
-                        badges[0].appendChild(document.createTextNode(' ' + formatNumber(game.visits)));
+                        updateBadge(badges[0], formatNumber(game.visits));
                     }
                     if (badges[1]) {
-                        const icon1 = badges[1].querySelector('.stat-icon');
-                        badges[1].innerHTML = '';
-                        if (icon1) badges[1].appendChild(icon1);
-                        badges[1].appendChild(document.createTextNode(' ' + formatNumber(game.playing) + ' playing'));
+                        updateBadge(badges[1], formatNumber(game.playing) + ' playing');
                     }
                 });
                 
@@ -1758,7 +1749,32 @@
                 document.body.style.transition = 'opacity 0.6s ease';
                 document.body.style.opacity = '1';
             });
+
+            // === Hero word-by-word reveal ===
+            const heroDesc = document.querySelector('.hero-description');
+            if (heroDesc) {
+                const text = heroDesc.textContent.trim();
+                heroDesc.innerHTML = text.split(' ').map(w => `<span class="word">${w}</span>`).join(' ');
+                const words = heroDesc.querySelectorAll('.word');
+                words.forEach((w, i) => {
+                    setTimeout(() => w.classList.add('visible'), 900 + i * 60);
+                });
+            }
         });
+
+        // === Magnetic button hover ===
+        document.querySelectorAll('.btn-magnetic').forEach(btn => {
+            btn.addEventListener('mousemove', e => {
+                const rect = btn.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                btn.style.transform = `translate(${x * 0.15}px, ${y * 0.25}px)`;
+            });
+            btn.addEventListener('mouseleave', () => {
+                btn.style.transform = '';
+            });
+        });
+
     </script>
 </body>
 </html>
