@@ -1411,10 +1411,50 @@
             letter-spacing: 0.06em;
             color: var(--accent);
         }
-        .form-feedback-text {
-            font-size: 0.9rem;
-            line-height: 1.6;
+        .form-feedback-subtext {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin: 0;
+        }
+        .form-question {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+        .form-question-label {
+            font-size: 0.85rem;
             color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .form-question-input {
+            width: 100%;
+            padding: 0.65rem 0.9rem;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.88rem;
+            font-family: inherit;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+        .form-question-input::placeholder {
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+        .form-question-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .form-summary-text {
+            font-size: 0.9rem;
+            line-height: 1.65;
+            color: var(--text-secondary);
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 1rem 1.1rem;
+            margin: 0;
         }
         .form-feedback-actions {
             display: flex;
@@ -1944,11 +1984,15 @@
                         <p class="form-status" id="formStatus"></p>
                     </div>
                     <div class="form-feedback" id="formFeedback">
-                        <div class="form-feedback-header">🧠 AI Review</div>
-                        <p class="form-feedback-text" id="feedbackText"></p>
+                        <div class="form-feedback-header" id="feedbackHeader">🧠 A few quick questions</div>
+                        <p class="form-feedback-subtext" id="feedbackSubtext">Answer what you'd like — feel free to skip any.</p>
+                        <div id="questionsContainer"></div>
+                        <div id="summaryContainer" style="display:none">
+                            <p id="summaryText" class="form-summary-text"></p>
+                        </div>
                         <div class="form-feedback-actions">
-                            <button type="button" class="btn-send-anyway" id="sendAnyway">Send Anyway →</button>
-                            <button type="button" class="btn-edit-msg" id="editMsg">✏️ Edit Message</button>
+                            <button type="button" class="btn-send-anyway" id="feedbackPrimary">Continue →</button>
+                            <button type="button" class="btn-edit-msg" id="feedbackEdit">✏️ Edit Message</button>
                         </div>
                     </div>
                 </form>
@@ -2268,17 +2312,25 @@
             });
         });
 
-        // === Contact form (AI review step) ===
+        // === Contact form (AI questions + summary) ===
         (function() {
             const form = document.getElementById('contactForm');
             const status = document.getElementById('formStatus');
             const feedbackPanel = document.getElementById('formFeedback');
-            const feedbackText = document.getElementById('feedbackText');
-            const sendAnywayBtn = document.getElementById('sendAnyway');
-            const editMsgBtn = document.getElementById('editMsg');
+            const feedbackHeader = document.getElementById('feedbackHeader');
+            const feedbackSubtext = document.getElementById('feedbackSubtext');
+            const questionsContainer = document.getElementById('questionsContainer');
+            const summaryContainer = document.getElementById('summaryContainer');
+            const summaryText = document.getElementById('summaryText');
+            const primaryBtn = document.getElementById('feedbackPrimary');
+            const editBtn = document.getElementById('feedbackEdit');
+            const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
             if (!form) return;
 
+            let currentStep = 'form';
             let pendingData = null;
+            let currentQuestions = [];
+            let currentSummary = '';
 
             function getFormData() {
                 return {
@@ -2288,25 +2340,141 @@
                 };
             }
 
-            async function sendMessage(data) {
-                const btn = sendAnywayBtn || form.querySelector('button[type="submit"]');
+            function getAnswers() {
+                const inputs = questionsContainer.querySelectorAll('.form-question-input');
+                return currentQuestions.map((q, i) => ({
+                    question: q.question,
+                    answer: inputs[i] ? inputs[i].value.trim() : ''
+                }));
+            }
+
+            function showStep(step) {
+                currentStep = step;
+                status.textContent = '';
+                status.className = 'form-status';
+                if (step === 'form') {
+                    feedbackPanel.classList.remove('visible');
+                    submitBtn.style.display = '';
+                } else if (step === 'questions') {
+                    submitBtn.style.display = 'none';
+                    questionsContainer.style.display = '';
+                    summaryContainer.style.display = 'none';
+                    feedbackHeader.textContent = '\uD83E\uDDE0 A few quick questions';
+                    feedbackSubtext.style.display = '';
+                    primaryBtn.textContent = 'Continue \u2192';
+                    feedbackPanel.classList.add('visible');
+                } else if (step === 'summary') {
+                    submitBtn.style.display = 'none';
+                    questionsContainer.style.display = 'none';
+                    summaryContainer.style.display = '';
+                    feedbackHeader.textContent = '\uD83D\uDCCB Message Summary';
+                    feedbackSubtext.style.display = 'none';
+                    primaryBtn.textContent = 'Send \u2192';
+                    summaryText.textContent = currentSummary;
+                }
+            }
+
+            function renderQuestions(questions) {
+                questionsContainer.innerHTML = questions.map(q =>
+                    '<div class="form-question">' +
+                    '<label class="form-question-label">' + q.question + '</label>' +
+                    '<input type="text" class="form-question-input" placeholder="' + (q.hint || 'Optional') + '" />' +
+                    '</div>'
+                ).join('');
+            }
+
+            // Step 1: Form submit \u2192 get AI questions
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const origHTML = submitBtn.innerHTML;
+                pendingData = getFormData();
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span>Analyzing\u2026</span>';
+                status.textContent = '';
+                status.className = 'form-status';
+                feedbackPanel.classList.remove('visible');
+
+                try {
+                    const res = await fetch('/api/contact/review', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(pendingData)
+                    });
+                    const result = await res.json();
+                    currentQuestions = result.questions || [];
+
+                    if (currentQuestions.length === 0) {
+                        await sendFinal(pendingData.message);
+                    } else {
+                        renderQuestions(currentQuestions);
+                        showStep('questions');
+                    }
+                } catch {
+                    await sendFinal(pendingData.message);
+                }
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = origHTML;
+            });
+
+            // Step 2/3: Continue (summarize) or Send
+            primaryBtn.addEventListener('click', async () => {
+                if (currentStep === 'questions') {
+                    const answers = getAnswers();
+                    primaryBtn.disabled = true;
+                    primaryBtn.textContent = 'Summarizing\u2026';
+                    try {
+                        const res = await fetch('/api/contact/summarize', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ message: pendingData.message, answers })
+                        });
+                        const result = await res.json();
+                        currentSummary = result.summary || pendingData.message;
+                    } catch {
+                        currentSummary = pendingData.message;
+                    }
+                    primaryBtn.disabled = false;
+                    showStep('summary');
+                } else if (currentStep === 'summary') {
+                    await sendFinal(currentSummary);
+                }
+            });
+
+            // Edit: go back one step
+            editBtn.addEventListener('click', () => {
+                if (currentStep === 'summary') {
+                    showStep('questions');
+                } else {
+                    showStep('form');
+                    form.querySelector('textarea').focus();
+                }
+            });
+
+            async function sendFinal(messageText) {
+                const btn = currentStep === 'summary' ? primaryBtn : submitBtn;
                 const origText = btn.textContent;
                 btn.disabled = true;
-                btn.textContent = 'Sending…';
+                btn.textContent = 'Sending\u2026';
                 status.textContent = '';
                 status.className = 'form-status';
                 try {
                     const res = await fetch('/api/contact', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(data)
+                        body: JSON.stringify({
+                            name: pendingData.name,
+                            email: pendingData.email,
+                            message: messageText
+                        })
                     });
                     if (res.ok) {
                         feedbackPanel.classList.remove('visible');
+                        submitBtn.style.display = '';
                         status.textContent = 'Message sent! We\u2019ll be in touch \u2728';
                         status.classList.add('success');
                         form.reset();
                         pendingData = null;
+                        currentStep = 'form';
                     } else {
                         throw new Error();
                     }
@@ -2317,45 +2485,6 @@
                 btn.disabled = false;
                 btn.textContent = origText;
             }
-
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const btn = form.querySelector('button[type="submit"]');
-                const originalHTML = btn.innerHTML;
-                const data = getFormData();
-                pendingData = data;
-
-                btn.disabled = true;
-                btn.innerHTML = '<span>Reviewing…</span>';
-                status.textContent = '';
-                status.className = 'form-status';
-                feedbackPanel.classList.remove('visible');
-
-                try {
-                    const res = await fetch('/api/contact/review', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(data)
-                    });
-                    const result = await res.json();
-                    feedbackText.textContent = result.feedback || 'Your message looks good!';
-                    feedbackPanel.classList.add('visible');
-                } catch {
-                    // If review fails, just send directly
-                    await sendMessage(data);
-                }
-                btn.disabled = false;
-                btn.innerHTML = originalHTML;
-            });
-
-            sendAnywayBtn.addEventListener('click', () => {
-                if (pendingData) sendMessage(pendingData);
-            });
-
-            editMsgBtn.addEventListener('click', () => {
-                feedbackPanel.classList.remove('visible');
-                form.querySelector('textarea').focus();
-            });
         })();
 
         // === Chat widget UI (GPT-5 powered) ===

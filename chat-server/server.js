@@ -111,7 +111,7 @@ app.post('/api/contact/review', async (req, res) => {
       body: JSON.stringify({
         model: 'gpt-5-nano',
         messages: [
-          { role: 'system', content: `You are a helpful assistant reviewing a contact form submission for luminariaHQ, a Roblox game development studio. Analyze the message and provide brief, friendly feedback (2-4 sentences max). If anything is vague or missing, suggest what they could clarify. If the message is clear and complete, say so positively. Do NOT refuse or block any message. Format: start with a quick assessment, then any suggestions. Keep it casual and helpful. Do not use markdown formatting.` },
+          { role: 'system', content: `You are a helpful assistant for luminariaHQ, a Roblox game development studio. Analyze the contact form submission and generate 2-4 specific follow-up questions that would help clarify the person's request or gather useful details. Return ONLY valid JSON in this exact format: {"questions":[{"question":"Your question here","hint":"Brief example answer"}]}. Keep questions short, specific, and friendly. Do not ask for information already provided (name, email). If the message is already very clear and detailed, return 1-2 questions that could add helpful context.` },
           { role: 'user', content: `Name: ${name}\nEmail: ${email}\nMessage: ${message}` }
         ],
         max_completion_tokens: 2048,
@@ -120,13 +120,69 @@ app.post('/api/contact/review', async (req, res) => {
     });
     if (reviewRes.ok) {
       const data = await reviewRes.json();
-      const feedback = data.choices?.[0]?.message?.content?.trim();
-      if (feedback) return res.json({ feedback });
+      const content = data.choices?.[0]?.message?.content?.trim();
+      if (content) {
+        try {
+          const parsed = JSON.parse(content);
+          if (parsed.questions && Array.isArray(parsed.questions)) {
+            return res.json(parsed);
+          }
+        } catch {
+          // Try to extract JSON from the response
+          const match = content.match(/\{[\s\S]*\}/);
+          if (match) {
+            try {
+              const parsed = JSON.parse(match[0]);
+              if (parsed.questions) return res.json(parsed);
+            } catch {}
+          }
+        }
+      }
     }
-    res.json({ feedback: 'Your message looks good to go!' });
+    res.json({ questions: [] });
   } catch (err) {
     console.error('Review error:', err);
-    res.json({ feedback: 'Your message looks good to go!' });
+    res.json({ questions: [] });
+  }
+});
+
+app.post('/api/contact/summarize', async (req, res) => {
+  try {
+    const { message, answers } = req.body;
+    if (!message) return res.status(400).json({ error: 'Message is required' });
+
+    let prompt = `Original message:\n${message}`;
+    const answered = (answers || []).filter(a => a.answer && a.answer.trim());
+    if (answered.length > 0) {
+      prompt += '\n\nFollow-up answers:\n' + answered.map(a => `Q: ${a.question}\nA: ${a.answer}`).join('\n\n');
+    }
+
+    const summaryRes = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENAI_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-5-nano',
+        messages: [
+          { role: 'system', content: `Combine the following contact form message and any follow-up answers into a single clear, well-written summary paragraph. Keep all important details and specifics. Write in first person from the sender's perspective. Do not add greetings or sign-offs. Return ONLY the summary text, no formatting.` },
+          { role: 'user', content: prompt }
+        ],
+        max_completion_tokens: 2048,
+        temperature: 1
+      })
+    });
+
+    if (summaryRes.ok) {
+      const data = await summaryRes.json();
+      const summary = data.choices?.[0]?.message?.content?.trim();
+      if (summary) return res.json({ summary });
+    }
+    res.json({ summary: message });
+  } catch (err) {
+    console.error('Summarize error:', err);
+    res.json({ summary: req.body.message || '' });
   }
 });
 
