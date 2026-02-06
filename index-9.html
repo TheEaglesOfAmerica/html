@@ -3,14 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Luminary Ventures - Premium Roblox Game Development</title>
+    <title>Luminary Ventures — Premium Roblox Game Development Studio</title>
+    <meta name="description" content="Luminary Ventures is a premium Roblox game development studio based in Seattle. We craft captivating experiences that reach millions of players worldwide.">
+    <meta name="keywords" content="Roblox, game development, Roblox studio, Luminary Ventures, Roblox games, game design, Seattle">
+    <meta name="author" content="Luminary Ventures">
+    <meta name="theme-color" content="#050505">
+    <meta name="color-scheme" content="dark">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Luminary Ventures">
+    <meta property="og:title" content="Luminary Ventures — Premium Roblox Game Development">
+    <meta property="og:description" content="We craft captivating Roblox experiences that reach millions of players worldwide. From concept to infinity and beyond.">
+    <meta property="og:url" content="https://luminary.spunnie.com/">
+    <meta property="og:image" content="https://luminary.spunnie.com/og-image.png">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Luminary Ventures — Premium Roblox Game Development">
+    <meta name="twitter:description" content="We craft captivating Roblox experiences that reach millions of players worldwide.">
+    <meta name="twitter:image" content="https://luminary.spunnie.com/og-image.png">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://luminary.spunnie.com/">
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Luminary Ventures",
+        "url": "https://luminary.spunnie.com",
+        "description": "Premium Roblox game development studio based in Seattle.",
+        "location": {
+            "@type": "Place",
+            "address": {
+                "@type": "PostalAddress",
+                "addressLocality": "Seattle",
+                "addressRegion": "WA",
+                "addressCountry": "US"
+            }
+        }
+    }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=General+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        @font-face {
-            font-family: 'General Sans';
-            src: url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
+        html {
+            scroll-behavior: smooth;
         }
 
         * {
@@ -689,18 +731,26 @@
 
         .game-title {
             font-family: 'Syne', sans-serif;
-            font-size: 1.6rem;
+            font-size: 1.35rem;
             font-weight: 800;
             margin-bottom: 0.4rem;
             letter-spacing: -0.02em;
             color: #ffffff;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .game-desc {
             color: rgba(255, 255, 255, 0.8);
-            font-size: 0.92rem;
+            font-size: 0.88rem;
             margin-bottom: 1rem;
             line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .game-stats {
@@ -874,10 +924,8 @@
         /* === RESPONSIVE === */
         @media (max-width: 1024px) {
             .games-grid { grid-template-columns: repeat(2, 1fr); }
-            .games-grid .game-card:last-child { grid-column: 1 / -1; max-width: 50%; justify-self: center; }
+            .games-grid .game-card:last-child { grid-column: 1 / -1; max-width: 65%; justify-self: center; }
             .metrics-grid { grid-template-columns: repeat(3, 1fr); }
-            .process-steps { grid-template-columns: repeat(2, 1fr); }
-            .footer-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
         @media (max-width: 768px) {
@@ -919,6 +967,9 @@
             .section-header { margin-bottom: 3rem; }
 
             .game-card { aspect-ratio: 16/11; }
+            .game-content { padding: 1.5rem; }
+            .game-title { font-size: 1.2rem; }
+            .game-desc { font-size: 0.82rem; }
 
             .hero-stats {
                 gap: 2rem;
@@ -928,10 +979,6 @@
 
             .hero-stat-value { font-size: 1.4rem; }
 
-            .services-grid { grid-template-columns: 1fr; }
-            .process-steps { grid-template-columns: 1fr; gap: 1rem; }
-            .testimonials-grid { grid-template-columns: 1fr; }
-            .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
             .footer-bottom { flex-direction: column; gap: 1rem; text-align: center; }
             .contact-card { padding: 2rem 1.5rem; }
         }
@@ -942,217 +989,7 @@
             .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
             .contact-links { flex-direction: column; align-items: center; }
             .contact-link { width: 100%; justify-content: center; }
-            .services-grid { grid-template-columns: 1fr; }
-            .process-steps { grid-template-columns: 1fr; }
-            .testimonials-grid { grid-template-columns: 1fr; }
-            .footer-grid { grid-template-columns: 1fr; text-align: center; }
-            .footer-grid .footer-col:first-child { align-items: center; }
             .footer-bottom { flex-direction: column; gap: 1rem; text-align: center; }
-        }
-
-        /* === SERVICES === */
-        .services {
-            background: linear-gradient(180deg, var(--primary-bg) 0%, var(--secondary-bg) 50%, var(--primary-bg) 100%);
-        }
-
-        .services-grid {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
-        }
-
-        .service-card {
-            padding: 2.25rem;
-            border-radius: var(--radius-lg);
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-subtle);
-            transition: all 0.5s var(--ease-out);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .service-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--accent), transparent);
-            opacity: 0;
-            transition: opacity 0.5s ease;
-        }
-
-        .service-card:hover::before { opacity: 1; }
-
-        .service-card:hover {
-            border-color: var(--border-hover);
-            transform: translateY(-6px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 60px rgba(232, 185, 49, 0.04);
-            background: rgba(255, 255, 255, 0.035);
-        }
-
-        .service-icon {
-            width: 52px;
-            height: 52px;
-            border-radius: var(--radius-sm);
-            background: linear-gradient(135deg, rgba(232, 185, 49, 0.12) 0%, rgba(232, 185, 49, 0.04) 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            margin-bottom: 1.5rem;
-            border: 1px solid rgba(232, 185, 49, 0.1);
-        }
-
-        .service-card h3 {
-            font-family: 'Syne', sans-serif;
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-            letter-spacing: -0.01em;
-        }
-
-        .service-card p {
-            font-size: 0.92rem;
-            color: var(--text-secondary);
-            line-height: 1.7;
-        }
-
-        /* === PROCESS === */
-        .process {
-            background: var(--primary-bg);
-        }
-
-        .process-steps {
-            max-width: 1100px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1.25rem;
-            position: relative;
-        }
-
-        .process-step {
-            text-align: center;
-            padding: 2rem 1.25rem;
-            border-radius: var(--radius-lg);
-            background: rgba(255, 255, 255, 0.015);
-            border: 1px solid var(--border-subtle);
-            transition: all 0.5s var(--ease-out);
-            position: relative;
-        }
-
-        .process-step:hover {
-            border-color: var(--border-hover);
-            transform: translateY(-4px);
-            background: rgba(255, 255, 255, 0.03);
-        }
-
-        .step-number {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
-            color: var(--primary-bg);
-            font-family: 'Syne', sans-serif;
-            font-size: 0.95rem;
-            font-weight: 800;
-            margin-bottom: 1.25rem;
-        }
-
-        .process-step h3 {
-            font-family: 'Syne', sans-serif;
-            font-size: 1.05rem;
-            font-weight: 700;
-            margin-bottom: 0.6rem;
-            letter-spacing: -0.01em;
-        }
-
-        .process-step p {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            line-height: 1.65;
-        }
-
-        /* === TESTIMONIALS === */
-        .testimonials {
-            background: linear-gradient(180deg, var(--primary-bg) 0%, var(--secondary-bg) 100%);
-        }
-
-        .testimonials-grid {
-            max-width: 1100px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem;
-        }
-
-        .testimonial-card {
-            padding: 2rem 2.25rem;
-            border-radius: var(--radius-lg);
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-subtle);
-            transition: all 0.5s var(--ease-out);
-        }
-
-        .testimonial-card:hover {
-            border-color: var(--border-hover);
-            transform: translateY(-4px);
-            box-shadow: 0 16px 35px rgba(0, 0, 0, 0.2);
-        }
-
-        .testimonial-stars {
-            color: var(--accent);
-            font-size: 0.85rem;
-            letter-spacing: 0.15em;
-            margin-bottom: 1rem;
-        }
-
-        .testimonial-text {
-            font-size: 1rem;
-            color: var(--text-primary);
-            line-height: 1.75;
-            margin-bottom: 1.5rem;
-            font-style: italic;
-            opacity: 0.9;
-        }
-
-        .testimonial-author {
-            display: flex;
-            align-items: center;
-            gap: 0.85rem;
-        }
-
-        .testimonial-avatar {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Syne', sans-serif;
-            font-weight: 800;
-            font-size: 0.85rem;
-            color: var(--primary-bg);
-        }
-
-        .testimonial-name {
-            font-weight: 600;
-            font-size: 0.92rem;
-            color: var(--text-primary);
-        }
-
-        .testimonial-role {
-            font-size: 0.78rem;
-            color: var(--text-muted);
-            margin-top: 0.15rem;
         }
 
         /* === ENHANCED CONTACT === */
@@ -1184,132 +1021,25 @@
             margin-top: 1.5rem;
         }
 
-        /* === ENHANCED FOOTER === */
+        /* === FOOTER === */
         .footer-main {
-            padding: 4rem 5% 2rem;
+            padding: 3rem 5%;
             border-top: 1px solid var(--border-subtle);
-        }
-
-        .footer-grid {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr;
-            gap: 3rem;
-            padding-bottom: 3rem;
-            border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .footer-col {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .footer-brand {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            margin-bottom: 1rem;
-            text-decoration: none;
-            color: var(--text-primary);
-        }
-
-        .footer-brand .logo-mark {
-            width: 28px;
-            height: 28px;
-            font-size: 0.75rem;
-        }
-
-        .footer-brand span:last-child {
-            font-family: 'Syne', sans-serif;
-            font-size: 1rem;
-            font-weight: 800;
-            letter-spacing: 0.04em;
-        }
-
-        .footer-desc {
-            font-size: 0.88rem;
-            color: var(--text-secondary);
-            line-height: 1.7;
-            max-width: 320px;
-        }
-
-        .footer-heading {
-            font-family: 'Syne', sans-serif;
-            font-size: 0.78rem;
-            font-weight: 700;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: var(--text-primary);
-            margin-bottom: 1.25rem;
-        }
-
-        .footer-col a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.88rem;
-            padding: 0.3rem 0;
-            transition: color 0.3s ease;
-            display: block;
-        }
-
-        .footer-col a:hover { color: var(--accent); }
-
-        .footer-social {
-            display: flex;
-            gap: 0.75rem;
-            margin-top: 1.25rem;
-        }
-
-        .social-link {
-            width: 38px;
-            height: 38px;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border-subtle);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.95rem;
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .social-link:hover {
-            background: var(--accent);
-            border-color: var(--accent);
-            color: var(--primary-bg);
-            transform: translateY(-2px);
         }
 
         .footer-bottom {
             max-width: 1200px;
             margin: 0 auto;
-            padding-top: 1.75rem;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
         }
 
         .footer-bottom p {
-            color: var(--text-muted);
-            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            letter-spacing: 0.01em;
         }
-
-        .footer-bottom-links {
-            display: flex;
-            gap: 1.5rem;
-        }
-
-        .footer-bottom-links a {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.8rem;
-            transition: color 0.3s ease;
-        }
-
-        .footer-bottom-links a:hover { color: var(--text-secondary); }
 
     </style>
 </head>
@@ -1495,7 +1225,7 @@
 
     <!-- Footer -->
     <footer class="footer-main">
-        <div class="footer-bottom" style="border-top: none; padding: 2rem 0;">
+        <div class="footer-bottom">
             <p>🌊 Based in Seattle · © 2026 <span class="gradient-animated">Luminary</span> Ventures</p>
         </div>
     </footer>
