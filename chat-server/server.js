@@ -63,17 +63,47 @@ const transporter = nodemailer.createTransport({
   tls: { rejectUnauthorized: false }
 });
 
+async function generateSubject(name, message) {
+  try {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENAI_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-5-nano',
+        messages: [
+          { role: 'system', content: 'Generate a short, professional email subject line (max 8 words) for a business inquiry. Return ONLY the subject line, no quotes or extra text.' },
+          { role: 'user', content: `From: ${name}\nMessage: ${message}` }
+        ],
+        max_completion_tokens: 30,
+        temperature: 1,
+      })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const subject = data.choices?.[0]?.message?.content?.trim();
+      if (subject) return subject;
+    }
+  } catch (err) {
+    console.error('Subject generation error:', err);
+  }
+  return `New inquiry from ${name}`;
+}
+
 app.post('/api/contact', async (req, res) => {
   try {
     const { name, email, message } = req.body;
     if (!name || !email || !message) {
       return res.status(400).json({ error: 'All fields are required' });
     }
+    const subject = await generateSubject(name, message);
     await transporter.sendMail({
       from: `"${name}" <noreply@luminariahq.com>`,
       replyTo: email,
       to: 'hello@luminariahq.com',
-      subject: `New inquiry from ${name}`,
+      subject,
       text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
       html: `<p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> ${email}</p><hr><p>${message.replace(/\n/g, '<br>')}</p>`
     });
