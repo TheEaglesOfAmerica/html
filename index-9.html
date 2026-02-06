@@ -1683,42 +1683,28 @@
 
         // === Roblox API: Fetch live game data ===
         (async function fetchRobloxData() {
-            const placeIds = [80721566320095, 18197232543, 17286779041];
+            // Universe IDs mapped to card order: Skydive, McRonalds, Shimmer Bay
+            const universeIds = [6589241758, 6169297188, 5914034409];
             
             try {
-                // Step 1: Get universe IDs from place IDs
-                const universePromises = placeIds.map(pid =>
-                    fetch(`https://apis.roblox.com/universes/v1/places/${pid}/universe`)
-                        .then(r => r.json())
-                        .then(d => ({ placeId: pid, universeId: d.universeId }))
-                        .catch(() => null)
-                );
-                const universeResults = (await Promise.all(universePromises)).filter(Boolean);
-                
-                if (universeResults.length === 0) return;
-                
-                const universeIds = universeResults.map(u => u.universeId);
-                
-                // Step 2: Fetch game data from Roblox Games API
                 const gamesRes = await fetch(`https://games.roblox.com/v1/games?universeIds=${universeIds.join(',')}`);
                 const gamesData = await gamesRes.json();
                 
                 if (!gamesData.data || gamesData.data.length === 0) return;
                 
-                // Build lookup: placeId -> game data
-                const gameByPlace = {};
+                // Build lookup: universeId -> game data
+                const gameById = {};
                 for (const game of gamesData.data) {
-                    const match = universeResults.find(u => u.universeId === game.id);
-                    if (match) gameByPlace[match.placeId] = game;
+                    gameById[game.id] = game;
                 }
                 
-                // Step 3: Update game cards with real data
+                // Update game cards with real data
                 const cards = document.querySelectorAll('.game-card');
                 let totalVisits = 0;
                 let totalPlaying = 0;
                 
-                placeIds.forEach((pid, i) => {
-                    const game = gameByPlace[pid];
+                universeIds.forEach((uid, i) => {
+                    const game = gameById[uid];
                     if (!game || !cards[i]) return;
                     
                     totalVisits += game.visits || 0;
@@ -1740,7 +1726,7 @@
                     }
                 });
                 
-                // Step 4: Update hero stats + metrics with real totals
+                // Update hero stats + metrics with real totals
                 const heroStatValues = document.querySelectorAll('.hero-stat-value');
                 if (heroStatValues[0]) {
                     heroStatValues[0].innerHTML = '<span class="accent">' + formatNumber(totalPlaying) + '</span>';
@@ -1756,7 +1742,6 @@
                     metricEls[0].closest('.metric').querySelector('.metric-label').textContent = 'Playing Now';
                 }
                 if (metricEls[2] && totalVisits > 0) {
-                    // Convert visits to display value
                     let visitDisplay, visitSuffix;
                     if (totalVisits >= 1e9) {
                         visitDisplay = Math.round(totalVisits / 1e9);
