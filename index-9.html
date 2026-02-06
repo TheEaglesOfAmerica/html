@@ -115,6 +115,54 @@
             html { scroll-behavior: auto; }
         }
 
+        /* Loading overlay — shows instantly, no JS needed */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100000;
+            background: var(--primary-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        .loading-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .loading-overlay img {
+            width: 56px;
+            height: 56px;
+            animation: loadPulse 1.5s ease-in-out infinite;
+        }
+        .loading-bar {
+            width: 48px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .loading-bar::after {
+            content: '';
+            display: block;
+            width: 50%;
+            height: 100%;
+            background: var(--accent);
+            border-radius: 2px;
+            animation: loadSlide 1s ease-in-out infinite;
+        }
+        @keyframes loadPulse {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+        @keyframes loadSlide {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+        }
+
         /* Custom Cursor */
         .cursor-dot {
             width: 8px;
@@ -151,7 +199,6 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             text-rendering: optimizeLegibility;
-            opacity: 0;
         }
 
         a, button, .clickable { cursor: none; }
@@ -1234,8 +1281,6 @@
         .footer-main {
             padding: 3rem 5%;
             border-top: 1px solid var(--border-subtle);
-            position: relative;
-            overflow: hidden;
         }
 
         .footer-bottom {
@@ -1254,43 +1299,17 @@
             letter-spacing: 0.01em;
         }
 
-        /* Rain animation */
-        .seattle-rain {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            z-index: 1;
-            overflow: hidden;
-        }
-
-        .raindrop {
-            position: absolute;
-            width: 1px;
-            background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.12));
-            animation: rainfall linear infinite;
-            opacity: 0;
-        }
-
-        @keyframes rainfall {
-            0% { transform: translateY(-20px); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 0.6; }
-            100% { transform: translateY(120px); opacity: 0; }
-        }
-
         /* Stable hover zones — prevent jitter on translateY buttons */
         .metric,
         .btn-primary,
         .btn-secondary,
         .contact-link,
-        .back-to-top,
         .testimonial-author { position: relative; }
 
         .metric::after,
         .btn-primary::after,
         .btn-secondary::after,
         .contact-link::after,
-        .back-to-top::after,
         .testimonial-author::after {
             content: '';
             position: absolute;
@@ -1301,6 +1320,12 @@
     </style>
 </head>
 <body>
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <img src="logo.png" alt="Luminary" width="56" height="56">
+        <div class="loading-bar"></div>
+    </div>
+
     <!-- Cursor -->
     <div class="cursor-dot" id="cursorDot"></div>
 
@@ -1498,10 +1523,8 @@
 
     <!-- Footer -->
     <footer class="footer-main">
-        <!-- Seattle rain -->
-        <div class="seattle-rain" id="seattleRain"></div>
         <div class="footer-bottom">
-            <p>🌧️ Based in Seattle · © 2026 <span class="gradient-animated">Luminary</span> Ventures</p>
+            <p>© 2026 <span class="gradient-animated">Luminary</span> Ventures</p>
         </div>
     </footer>
 
@@ -1743,12 +1766,12 @@
             return n.toString();
         }
 
-        // === Page load fade-in ===
+        // === Page load — dismiss loading overlay ===
         window.addEventListener('load', () => {
-            requestAnimationFrame(() => {
-                document.body.style.transition = 'opacity 0.6s ease';
-                document.body.style.opacity = '1';
-            });
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.classList.add('hidden');
+            // Cleanup after transition
+            setTimeout(() => { if (overlay) overlay.remove(); }, 600);
 
             // === Hero word-by-word reveal ===
             const heroDesc = document.querySelector('.hero-description');
