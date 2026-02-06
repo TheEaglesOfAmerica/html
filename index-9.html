@@ -1285,50 +1285,100 @@
 
         .contact-form {
             width: 100%;
-            max-width: 480px;
-            margin-top: 2rem;
+            max-width: 520px;
+            margin-top: 2.5rem;
+            padding-top: 2.5rem;
+            border-top: 1px solid var(--border-subtle);
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 1rem;
+        }
+        .contact-form .form-heading {
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+        .contact-form .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        .contact-form .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .contact-form label {
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            letter-spacing: 0.01em;
         }
         .contact-form input,
         .contact-form textarea {
             width: 100%;
-            padding: 0.85rem 1rem;
+            padding: 0.9rem 1.1rem;
             border-radius: var(--radius);
             border: 1px solid var(--border-subtle);
-            background: rgba(255,255,255,0.03);
+            background: rgba(255,255,255,0.02);
             color: var(--text-primary);
             font-family: inherit;
-            font-size: 0.95rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            font-size: 0.92rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
             box-sizing: border-box;
+            -webkit-appearance: none;
+            appearance: none;
         }
         .contact-form input::placeholder,
         .contact-form textarea::placeholder {
             color: var(--text-muted);
+            opacity: 0.6;
+        }
+        .contact-form input:hover,
+        .contact-form textarea:hover {
+            border-color: rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.035);
         }
         .contact-form input:focus,
         .contact-form textarea:focus {
             outline: none;
             border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.12), 0 1px 3px rgba(0,0,0,0.1);
+            background: rgba(255,255,255,0.04);
         }
         .contact-form textarea {
             resize: vertical;
-            min-height: 100px;
+            min-height: 120px;
+            line-height: 1.6;
+        }
+        .contact-form .form-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: 0.5rem;
         }
         .contact-form button[type="submit"] {
-            align-self: flex-start;
-            margin-top: 0.25rem;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
         }
         .form-status {
             font-size: 0.85rem;
-            margin-top: 0.25rem;
             min-height: 1.2em;
+            flex: 1;
+            text-align: right;
         }
         .form-status.success { color: var(--green-accent); }
         .form-status.error { color: #f87171; }
+        @media (max-width: 600px) {
+            .contact-form .form-row { grid-template-columns: 1fr; }
+            .contact-form .form-footer { flex-direction: column; align-items: stretch; }
+            .contact-form .form-footer .form-status { text-align: center; }
+        }
 
         /* === FOOTER === */
         .footer-main {
@@ -1785,11 +1835,25 @@
                     </a>
                 </div>
                 <form class="contact-form" id="contactForm">
-                    <input type="text" name="name" placeholder="Your name" required>
-                    <input type="email" name="email" placeholder="Your email" required>
-                    <textarea name="message" placeholder="Tell us about your project..." rows="4" required></textarea>
-                    <button type="submit" class="btn-primary clickable">Send Message ✉</button>
-                    <p class="form-status" id="formStatus"></p>
+                    <p class="form-heading">Or send us a message directly</p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cf-name">Name</label>
+                            <input type="text" id="cf-name" name="name" placeholder="Jane Doe" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="cf-email">Email</label>
+                            <input type="email" id="cf-email" name="email" placeholder="jane@example.com" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cf-message">Message</label>
+                        <textarea id="cf-message" name="message" placeholder="Tell us about your project, idea, or how we can help..." rows="5" required></textarea>
+                    </div>
+                    <div class="form-footer">
+                        <button type="submit" class="btn-primary clickable"><span>Send Message</span> <span class="cta-arrow">→</span></button>
+                        <p class="form-status" id="formStatus"></p>
+                    </div>
                 </form>
             </div>
         </div>
@@ -2115,8 +2179,9 @@
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const btn = form.querySelector('button[type="submit"]');
+                const originalHTML = btn.innerHTML;
                 btn.disabled = true;
-                btn.textContent = 'Sending...';
+                btn.innerHTML = '<span>Sending\u2026</span>';
                 status.textContent = '';
                 status.className = 'form-status';
                 try {
@@ -2130,7 +2195,7 @@
                         })
                     });
                     if (res.ok) {
-                        status.textContent = 'Message sent! We\'ll be in touch \u2728';
+                        status.textContent = 'Message sent! We\u2019ll be in touch \u2728';
                         status.classList.add('success');
                         form.reset();
                     } else {
@@ -2141,7 +2206,7 @@
                     status.classList.add('error');
                 }
                 btn.disabled = false;
-                btn.textContent = 'Send Message \u2709';
+                btn.innerHTML = originalHTML;
             });
         })();
 
