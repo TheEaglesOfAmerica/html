@@ -361,6 +361,21 @@
             background-clip: text;
         }
 
+        .gradient-animated {
+            background: linear-gradient(270deg, var(--accent), #f0d060, var(--accent-secondary), #ff6b6b, var(--accent), #f0d060);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientMove 4s ease infinite;
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
         .hero h1 .gradient {
             background: linear-gradient(135deg, var(--accent) 0%, #f0d060 40%, var(--accent-secondary) 100%);
             -webkit-background-clip: text;
@@ -1322,7 +1337,7 @@
     <nav id="nav">
         <a href="#" class="logo clickable">
             <span class="logo-mark">✦</span>
-            <span>LUMINARY</span>
+            <span class="gradient-animated">LUMINARY</span>
         </a>
         <button class="menu-toggle clickable" id="menuToggle" aria-label="Toggle menu">
             <span></span><span></span><span></span>
@@ -1342,7 +1357,7 @@
                 <span>Premium Roblox Development</span>
             </div>
             <h1>
-                <span class="line"><span class="line-inner">Crafting <span class="gradient">Luminary</span></span></span>
+                <span class="line"><span class="line-inner">Crafting <span class="gradient-animated">Luminary</span></span></span>
                 <span class="line"><span class="line-inner">Games</span></span>
             </h1>
             <p class="hero-description">We build quality Roblox experiences that continue to captivate millions, from concept to infinity and beyond.</p>
@@ -1457,7 +1472,7 @@
     <section class="contact" id="contact">
         <div class="contact-inner reveal">
             <span class="section-label">Get Started</span>
-            <h2>Let's Build Something <span class="gradient">Legendary</span></h2>
+            <h2>Let's Build Something <span class="gradient-animated">Luminary</span></h2>
             <p>Have a game idea or need to scale an existing project? We'd love to hear from you.</p>
             <div class="contact-card">
                 <div class="contact-links">
@@ -1481,7 +1496,7 @@
     <!-- Footer -->
     <footer class="footer-main">
         <div class="footer-bottom" style="border-top: none; padding: 2rem 0;">
-            <p>🌊 Based in Seattle · © 2026 Luminary Ventures</p>
+            <p>🌊 Based in Seattle · © 2026 <span class="gradient-animated">Luminary</span> Ventures</p>
         </div>
     </footer>
 
