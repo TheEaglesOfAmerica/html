@@ -1363,8 +1363,11 @@
         }
         .contact-form button[type="submit"] {
             border: none;
-            cursor: pointer;
             white-space: nowrap;
+        }
+        .contact-form button[type="submit"]:disabled {
+            opacity: 0.5;
+            pointer-events: none;
         }
         .form-status {
             font-size: 0.85rem;
