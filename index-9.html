@@ -769,12 +769,14 @@
             overflow: hidden;
             aspect-ratio: 16/10;
             border: 1px solid var(--border-subtle);
-            transition: all 0.5s var(--ease-out);
+            transition: transform 0.45s cubic-bezier(0.23, 1, 0.32, 1), border-color 0.3s ease, box-shadow 0.4s ease;
             display: block;
             text-decoration: none;
             color: inherit;
             transform-style: preserve-3d;
             will-change: transform;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
         }
 
         .game-card-bg {
@@ -2016,22 +2018,42 @@
             }
         });
 
-        // === 3D tilt on game cards ===
+        // === 3D tilt on game cards (RAF-throttled + lerped) ===
         document.querySelectorAll('.game-card').forEach(card => {
+            let targetX = 0, targetY = 0, currentX = 0, currentY = 0;
+            let hovering = false, tiltRaf = null;
+
+            function tiltLoop() {
+                currentX += (targetX - currentX) * 0.12;
+                currentY += (targetY - currentY) * 0.12;
+                card.style.transform = `perspective(1000px) rotateX(${currentX}deg) rotateY(${currentY}deg) translateZ(0) translateY(-8px) scale(1.02)`;
+                if (hovering || Math.abs(targetX - currentX) > 0.01 || Math.abs(targetY - currentY) > 0.01) {
+                    tiltRaf = requestAnimationFrame(tiltLoop);
+                } else {
+                    card.style.transform = '';
+                    tiltRaf = null;
+                }
+            }
+
             card.addEventListener('mousemove', e => {
                 const rect = card.getBoundingClientRect();
                 const x = (e.clientX - rect.left) / rect.width;
                 const y = (e.clientY - rect.top) / rect.height;
-                const tiltX = (y - 0.5) * -12;
-                const tiltY = (x - 0.5) * 12;
-                card.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) translateY(-8px) scale(1.02)`;
-                card.style.borderColor = 'var(--border-hover)';
-                card.style.boxShadow = '0 25px 50px rgba(0,0,0,0.35), 0 0 80px rgba(232,185,49,0.06)';
+                targetX = (y - 0.5) * -10;
+                targetY = (x - 0.5) * 10;
+                if (!hovering) {
+                    hovering = true;
+                    card.style.borderColor = 'var(--border-hover)';
+                    card.style.boxShadow = '0 25px 50px rgba(0,0,0,0.35), 0 0 80px rgba(232,185,49,0.06)';
+                    if (!tiltRaf) tiltRaf = requestAnimationFrame(tiltLoop);
+                }
             });
             card.addEventListener('mouseleave', () => {
-                card.style.transform = '';
+                hovering = false;
+                targetX = 0; targetY = 0;
                 card.style.borderColor = '';
                 card.style.boxShadow = '';
+                if (!tiltRaf) tiltRaf = requestAnimationFrame(tiltLoop);
             });
         });
 
@@ -2171,13 +2193,13 @@
             let targetScroll = window.scrollY;
             let currentScroll = window.scrollY;
             let animating = false;
-            const lerp = 0.08;
-            const threshold = 0.5;
+            const lerp = 0.12;
+            const threshold = 0.3;
 
             // Snap config
             let snapTimer = null;
             let lastWheelTime = 0;
-            const snapDelay = 600; // ms of idle before snapping
+            const snapDelay = 450; // ms of idle before snapping
             const snapSections = () => Array.from(document.querySelectorAll(
                 '.hero, .metrics, .services, .games, .testimonials, .contact, .footer-main'
             ));
@@ -2228,8 +2250,11 @@
             }
 
             function raf() {
-                currentScroll += (targetScroll - currentScroll) * lerp;
-                if (Math.abs(targetScroll - currentScroll) < threshold) {
+                const delta = targetScroll - currentScroll;
+                // Exponential ease with adaptive speed — faster for big distances
+                const speed = Math.abs(delta) > 300 ? lerp * 1.6 : lerp;
+                currentScroll += delta * speed;
+                if (Math.abs(delta) < threshold) {
                     currentScroll = targetScroll;
                     animating = false;
                 }
