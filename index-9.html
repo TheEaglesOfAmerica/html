@@ -2262,9 +2262,14 @@
                 if (animating) requestAnimationFrame(raf);
             }
 
-            window.addEventListener('wheel', onWheel, { passive: false });
+            const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
-            // Sync on touch / programmatic scroll
+            // Only enable custom scroll hijack + snap on desktop
+            if (!isMobile) {
+                window.addEventListener('wheel', onWheel, { passive: false });
+            }
+
+            // Sync on touch / programmatic scroll (no snap on mobile)
             let touching = false;
             window.addEventListener('touchstart', () => {
                 touching = true;
@@ -2274,7 +2279,6 @@
                 touching = false;
                 targetScroll = window.scrollY;
                 currentScroll = window.scrollY;
-                scheduleSnap();
             }, { passive: true });
             window.addEventListener('scroll', () => {
                 if (touching || !animating) {
