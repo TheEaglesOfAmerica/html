@@ -1437,23 +1437,51 @@
 
         .chat-typing {
             display: flex;
-            gap: 4px;
+            align-items: center;
+            gap: 0.6rem;
             padding: 0.7rem 1rem;
             align-self: flex-start;
+            max-width: 65%;
         }
-        .chat-typing span {
-            width: 6px;
-            height: 6px;
+        .chat-typing-bar {
+            flex: 1;
+            height: 3px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.06);
+            overflow: hidden;
+            min-width: 80px;
+        }
+        .chat-typing-bar::after {
+            content: '';
+            display: block;
+            height: 100%;
+            width: 40%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, transparent, var(--accent), var(--accent-secondary), transparent);
+            animation: chatShimmer 1.2s ease-in-out infinite;
+        }
+        .chat-typing-dots {
+            display: flex;
+            gap: 3px;
+        }
+        .chat-typing-dots span {
+            width: 5px;
+            height: 5px;
             border-radius: 50%;
-            background: var(--text-muted);
+            background: var(--accent);
+            opacity: 0.3;
             animation: typingDot 1.4s ease-in-out infinite;
         }
-        .chat-typing span:nth-child(2) { animation-delay: 0.15s; }
-        .chat-typing span:nth-child(3) { animation-delay: 0.3s; }
+        .chat-typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+        .chat-typing-dots span:nth-child(3) { animation-delay: 0.3s; }
 
         @keyframes typingDot {
-            0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
-            30% { opacity: 1; transform: translateY(-4px); }
+            0%, 60%, 100% { opacity: 0.3; transform: scale(1); }
+            30% { opacity: 1; transform: scale(1.3); }
+        }
+        @keyframes chatShimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(350%); }
         }
         @keyframes chatFadeIn {
             from { opacity: 0; transform: translateY(8px); }
@@ -2016,13 +2044,15 @@
             });
         });
 
-        // === Chat widget UI ===
+        // === Chat widget UI (GPT-5 powered) ===
         (function() {
             const toggle = document.getElementById('chatToggle');
             const panel = document.getElementById('chatPanel');
             const input = document.getElementById('chatInput');
             const sendBtn = document.getElementById('chatSend');
             const messages = document.getElementById('chatMessages');
+            const chatHistory = [];
+            let isStreaming = false;
 
             toggle.addEventListener('click', () => {
                 toggle.classList.toggle('open');
@@ -2038,29 +2068,94 @@
                 msg.textContent = text;
                 messages.appendChild(msg);
                 messages.scrollTop = messages.scrollHeight;
+                return msg;
             }
 
             function showTyping() {
                 const t = document.createElement('div');
                 t.className = 'chat-typing';
                 t.id = 'chatTyping';
-                t.innerHTML = '<span></span><span></span><span></span>';
+                t.innerHTML = '<div class="chat-typing-bar"></div><div class="chat-typing-dots"><span></span><span></span><span></span></div>';
                 messages.appendChild(t);
                 messages.scrollTop = messages.scrollHeight;
                 return t;
             }
 
-            function sendMessage() {
+            function getLiveStats() {
+                const stats = {};
+                try {
+                    const cards = document.querySelectorAll('.game-card');
+                    const gameNames = ['The Highest Skydive Ever Obby', "McRonald's Restaurant", 'Shimmer Bay'];
+                    cards.forEach((card, i) => {
+                        const badges = card.querySelectorAll('.stat-badge');
+                        const visits = badges[0] ? badges[0].textContent.trim() : 'N/A';
+                        const playing = badges[1] ? badges[1].textContent.trim() : 'N/A';
+                        stats[gameNames[i]] = { visits, playing };
+                    });
+                    const heroStats = document.querySelectorAll('.hero-stat-value');
+                    if (heroStats[0]) stats.totalPlaying = heroStats[0].textContent.trim();
+                    const metricEls = document.querySelectorAll('.metric-value');
+                    if (metricEls[2]) stats.totalVisits = metricEls[2].textContent.trim() + (metricEls[2].dataset.suffix || '');
+                } catch(e) {}
+                return stats;
+            }
+
+            async function sendMessage() {
                 const text = input.value.trim();
-                if (!text) return;
+                if (!text || isStreaming) return;
+                isStreaming = true;
                 addMessage(text, 'user');
+                chatHistory.push({ role: 'user', content: text });
                 input.value = '';
-                // Simulate AI typing
+                sendBtn.style.opacity = '0.5';
                 const typing = showTyping();
-                setTimeout(() => {
+
+                try {
+                    const liveStats = getLiveStats();
+                    const res = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            messages: chatHistory,
+                            liveStats
+                        })
+                    });
+
                     typing.remove();
-                    addMessage('Thanks for your message! AI responses are coming soon. In the meantime, reach out at hello@luminaryventures.com 🚀', 'ai');
-                }, 1200 + Math.random() * 800);
+
+                    if (!res.ok) throw new Error('API error');
+
+                    const reader = res.body.getReader();
+                    const decoder = new TextDecoder();
+                    const aiMsg = addMessage('', 'ai');
+                    let fullText = '';
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        const chunk = decoder.decode(value, { stream: true });
+                        const lines = chunk.split('\n').filter(l => l.startsWith('data: '));
+                        for (const line of lines) {
+                            const data = line.slice(6);
+                            if (data === '[DONE]') break;
+                            try {
+                                const parsed = JSON.parse(data);
+                                const token = parsed.choices?.[0]?.delta?.content || '';
+                                fullText += token;
+                                aiMsg.textContent = fullText;
+                                messages.scrollTop = messages.scrollHeight;
+                            } catch(e) {}
+                        }
+                    }
+
+                    chatHistory.push({ role: 'assistant', content: fullText });
+                } catch(err) {
+                    typing.remove();
+                    addMessage('Sorry, I\'m having trouble connecting right now. You can reach us at hello@luminaryventures.com 💌', 'ai');
+                } finally {
+                    isStreaming = false;
+                    sendBtn.style.opacity = '1';
+                }
             }
 
             sendBtn.addEventListener('click', sendMessage);
