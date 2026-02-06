@@ -73,11 +73,11 @@ app.post('/api/chat', async (req, res) => {
         'Authorization': `Bearer ${OPENAI_KEY}`
       },
       body: JSON.stringify({
-        model: 'gpt-5',
+        model: 'gpt-5-mini',
         messages: openaiMessages,
         stream: true,
-        max_tokens: 512,
-        temperature: 0.7
+        max_output_tokens: 512,
+        temperature: 1
       })
     });
 
