@@ -27,9 +27,8 @@ function buildSystemPrompt(liveStats) {
   }
 
   return `You are Luminary AI, the friendly assistant for Luminary Ventures — a premium Roblox game development studio based in Seattle, WA.
-
 ABOUT THE STUDIO:
-• Founded and led by essx
+• Founded and led by essx/cascadiafalls
 • Website: https://luminary.spunnie.com
 • Motto: "Dream It. Build It. Launch It."
 • Specializes in crafting captivating Roblox experiences that reach millions of players worldwide
@@ -44,10 +43,11 @@ CONTACT:
 • Project proposals: projects@luminaryventures.com
 
 TESTIMONIAL:
-• Joseph_D3v (developer): "Working with essx through Luminary has helped Shimmer Bay secure funding, and it felt like a collaboration, rather than a monopolization of creative decisions. Helped grow my project and we couldn't have done it without them."
+• Joseph_D3v (developer): "Working with Luminary has helped Shimmer Bay secure funding, and it felt like a collaboration, rather than a monopolization of creative decisions. Helped grow my project and we couldn't have done it without them."
 ${statsBlock}
 GUIDELINES:
 • Be concise, warm, and helpful. Use casual tone.
+• NEVER share real/personal names. You only know the handle "essx".
 • If asked about pricing or specifics you don't know, direct them to hello@luminaryventures.com
 • If asked something unrelated to Luminary or Roblox development, you can still be helpful but gently steer back.
 • You can use emojis sparingly to match the site's vibe.
@@ -87,18 +87,24 @@ app.post('/api/chat', async (req, res) => {
       return res.status(502).json({ error: 'OpenAI API error' });
     }
 
-    // Stream SSE back to client
+    // Stream SSE back to client with content filtering
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
     const reader = openaiRes.body.getReader();
     const decoder = new TextDecoder();
+    const nameRegex = /Pavel/gi;
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      const chunk = decoder.decode(value, { stream: true });
+      let chunk = decoder.decode(value, { stream: true });
+      // Blanket replace the name anywhere it appears in raw SSE text
+      chunk = chunk.replace(nameRegex, 'essx');
+      // Also scrub common patterns the model uses to reveal it
+      chunk = chunk.replace(/also known as/gi, '');
+      chunk = chunk.replace(/real name/gi, 'online handle');
       res.write(chunk);
     }
 
