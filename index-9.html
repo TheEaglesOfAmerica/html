@@ -1819,7 +1819,7 @@
             });
         });
 
-        // === Lenis smooth scroll ===
+        // === Lenis smooth scroll with snap ===
         (function() {
             const html = document.documentElement;
             let targetScroll = window.scrollY;
@@ -1828,13 +1828,57 @@
             const lerp = 0.08;
             const threshold = 0.5;
 
+            // Snap config
+            let snapTimer = null;
+            let lastWheelTime = 0;
+            const snapDelay = 600; // ms of idle before snapping
+            const snapSections = () => Array.from(document.querySelectorAll(
+                '.hero, .metrics, .services, .games, .testimonials, .contact, .footer-main'
+            ));
+
             html.classList.add('lenis', 'lenis-smooth');
+
+            function getSnapTargets() {
+                return snapSections().map(s => {
+                    const rect = s.getBoundingClientRect();
+                    return rect.top + window.scrollY;
+                });
+            }
+
+            function findNearestSnap(scrollPos) {
+                const targets = getSnapTargets();
+                const maxScroll = document.body.scrollHeight - window.innerHeight;
+                // Add page bottom as a snap target
+                targets.push(maxScroll);
+                let nearest = targets[0];
+                let minDist = Math.abs(scrollPos - nearest);
+                for (let i = 1; i < targets.length; i++) {
+                    const d = Math.abs(scrollPos - targets[i]);
+                    if (d < minDist) { minDist = d; nearest = targets[i]; }
+                }
+                return Math.max(0, Math.min(nearest, maxScroll));
+            }
+
+            function scheduleSnap() {
+                clearTimeout(snapTimer);
+                snapTimer = setTimeout(() => {
+                    const snap = findNearestSnap(targetScroll);
+                    // Only snap if we're reasonably close (within 40% of viewport)
+                    if (Math.abs(snap - targetScroll) < window.innerHeight * 0.4) {
+                        targetScroll = snap;
+                        if (!animating) { animating = true; raf(); }
+                    }
+                }, snapDelay);
+            }
 
             function onWheel(e) {
                 e.preventDefault();
+                clearTimeout(snapTimer);
                 targetScroll += e.deltaY;
                 targetScroll = Math.max(0, Math.min(targetScroll, document.body.scrollHeight - window.innerHeight));
+                lastWheelTime = Date.now();
                 if (!animating) { animating = true; raf(); }
+                scheduleSnap();
             }
 
             function raf() {
@@ -1851,11 +1895,15 @@
 
             // Sync on touch / programmatic scroll
             let touching = false;
-            window.addEventListener('touchstart', () => { touching = true; }, { passive: true });
+            window.addEventListener('touchstart', () => {
+                touching = true;
+                clearTimeout(snapTimer);
+            }, { passive: true });
             window.addEventListener('touchend', () => {
                 touching = false;
                 targetScroll = window.scrollY;
                 currentScroll = window.scrollY;
+                scheduleSnap();
             }, { passive: true });
             window.addEventListener('scroll', () => {
                 if (touching || !animating) {
@@ -1864,14 +1912,20 @@
                 }
             }, { passive: true });
 
-            // Smooth anchor clicks
+            // Smooth anchor clicks (skip snap for intentional navigation)
             document.querySelectorAll('a[href^="#"]').forEach(a => {
                 a.addEventListener('click', e => {
                     const href = a.getAttribute('href');
-                    if (href === '#') return;
+                    if (href === '#') {
+                        e.preventDefault();
+                        targetScroll = 0;
+                        if (!animating) { animating = true; raf(); }
+                        return;
+                    }
                     e.preventDefault();
                     const t = document.querySelector(href);
                     if (t) {
+                        clearTimeout(snapTimer);
                         targetScroll = t.getBoundingClientRect().top + window.scrollY;
                         targetScroll = Math.max(0, Math.min(targetScroll, document.body.scrollHeight - window.innerHeight));
                         if (!animating) { animating = true; raf(); }
