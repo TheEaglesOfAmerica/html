@@ -837,6 +837,104 @@
         }
 
         /* === TESTIMONIALS === */
+        .testimonials {
+            text-align: center;
+        }
+
+        .testimonial-card {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 3rem;
+            border-radius: var(--radius-xl);
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-subtle);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .testimonial-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--green-accent), var(--accent));
+        }
+
+        .testimonial-quote {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-style: italic;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .testimonial-quote::before {
+            content: '\201C';
+            font-size: 4rem;
+            color: var(--accent);
+            position: absolute;
+            top: -1.5rem;
+            left: -0.5rem;
+            font-family: 'Syne', serif;
+            opacity: 0.4;
+            line-height: 1;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            text-decoration: none;
+            transition: all 0.3s var(--ease-out);
+        }
+
+        .testimonial-author:hover {
+            transform: translateY(-2px);
+        }
+
+        .testimonial-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 2px solid var(--accent);
+            object-fit: cover;
+            background: var(--secondary-bg);
+        }
+
+        .testimonial-author-info {
+            text-align: left;
+        }
+
+        .testimonial-author-name {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .testimonial-author-role {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .testimonial-cta {
+            margin-top: 2rem;
+            padding: 1.25rem 2rem;
+            border-radius: var(--radius-lg);
+            background: linear-gradient(135deg, rgba(232, 185, 49, 0.06) 0%, rgba(93, 255, 162, 0.06) 100%);
+            border: 1px dashed rgba(232, 185, 49, 0.2);
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            max-width: 720px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .testimonial-cta .gradient-animated {
+            font-weight: 700;
+        }
+
         /* === CONTACT === */
         .contact {
             background: linear-gradient(180deg, var(--primary-bg) 0%, var(--secondary-bg) 100%);
@@ -1036,6 +1134,10 @@
             .contact-link { padding: 0.75rem 1rem; min-height: 48px; font-size: 0.85rem; }
             .location { font-size: 0.82rem; }
 
+            .testimonial-card { padding: 2rem 1.5rem; }
+            .testimonial-quote { font-size: 1rem; }
+            .testimonial-cta { padding: 1rem 1.25rem; font-size: 0.85rem; }
+
             .footer-bottom { flex-direction: column; gap: 1rem; text-align: center; }
         }
 
@@ -1056,6 +1158,10 @@
             .game-desc { font-size: 0.75rem; -webkit-line-clamp: 1; }
             .contact-links { flex-direction: column; align-items: center; }
             .contact-link { width: 100%; justify-content: center; }
+            .testimonial-card { padding: 1.5rem 1.25rem; }
+            .testimonial-quote { font-size: 0.92rem; }
+            .testimonial-quote::before { font-size: 3rem; top: -1rem; }
+            .testimonial-cta { font-size: 0.82rem; padding: 1rem; }
             .section-header h2 { font-size: clamp(1.3rem, 6vw, 1.75rem); }
             .section-header p { font-size: 0.85rem; }
             .footer-bottom { flex-direction: column; gap: 1rem; text-align: center; }
@@ -1268,7 +1374,28 @@
 
     <div class="section-divider"></div>
 
-    <!-- Contact -->
+    <!-- Testimonials -->
+    <section class="testimonials">
+        <div class="section-header reveal">
+            <span class="section-label">Testimonials</span>
+            <h2>What Our Partners <span class="gradient">Say</span></h2>
+        </div>
+        <div class="testimonial-card reveal reveal-delay-1">
+            <p class="testimonial-quote">Working with essx through Luminary has helped Shimmer Bay secure funding, and it felt like a collaboration, rather than a monopolization of creative decisions. Helped grow my project and we couldn't have done it without them.</p>
+            <a href="https://www.roblox.com/users/1860734857/" target="_blank" class="testimonial-author clickable">
+                <img class="testimonial-avatar" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Joseph_D3v" width="48" height="48">
+                <div class="testimonial-author-info">
+                    <div class="testimonial-author-name">Joseph_D3v</div>
+                    <div class="testimonial-author-role">Shimmer Bay Creator</div>
+                </div>
+            </a>
+        </div>
+        <div class="testimonial-cta reveal reveal-delay-2">
+            ✨ Your story could be next — <a href="#contact" class="gradient-animated clickable" style="text-decoration:none;">let's build something together</a>
+        </div>
+    </section>
+
+    <div class="section-divider"></div>
     <section class="contact" id="contact">
         <div class="contact-inner reveal">
             <span class="section-label">Get Started</span>
@@ -1506,6 +1633,18 @@
 
         // Add loading shimmer to stat badges
         document.querySelectorAll('.stat-badge').forEach(b => b.classList.add('loading'));
+
+        // Fetch Joseph_D3v avatar from Roblox thumbnails API
+        (async function() {
+            try {
+                const res = await fetch('https://thumbnails.roproxy.com/v1/users/avatar-headshot?userIds=1860734857&size=720x720&format=Png&isCircular=false');
+                const data = await res.json();
+                if (data.data && data.data[0] && data.data[0].imageUrl) {
+                    const avatar = document.querySelector('.testimonial-avatar');
+                    if (avatar) avatar.src = data.data[0].imageUrl;
+                }
+            } catch(e) { console.log('Avatar fetch failed, using fallback'); }
+        })();
 
         // Fetch immediately, then refresh every 10 seconds
         fetchRobloxData();
