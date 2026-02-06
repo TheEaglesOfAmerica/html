@@ -456,32 +456,6 @@
             align-items: center;
         }
 
-        .hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.6rem;
-            padding: 0.5rem 1.15rem;
-            background: rgba(232, 185, 49, 0.06);
-            border: 1px solid rgba(232, 185, 49, 0.15);
-            border-radius: 100px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: var(--accent);
-            margin-bottom: 2.5rem;
-            opacity: 0; transform: translateY(20px);
-            animation: fadeUp 0.8s var(--ease-out) 0.2s forwards;
-        }
-
-        .badge-dot {
-            width: 6px; height: 6px;
-            background: var(--green-accent);
-            border-radius: 50%;
-            animation: pulse 2s ease-in-out infinite;
-            box-shadow: 0 0 8px rgba(93, 255, 162, 0.5);
-        }
-
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
         @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
 
@@ -1125,7 +1099,7 @@
         /* Back to top */
         .back-to-top {
             position: fixed;
-            bottom: 2rem; right: 2rem;
+            bottom: 5.5rem; right: 2.25rem;
             width: 44px; height: 44px;
             background: var(--accent);
             border-radius: var(--radius-sm);
@@ -1250,7 +1224,6 @@
         @media (max-width: 480px) {
             .hero { padding: 5rem 4% 3rem; }
             .hero h1 { font-size: clamp(1.8rem, 9vw, 2.5rem); }
-            .hero-badge { font-size: 0.6rem; padding: 0.4rem 0.9rem; margin-bottom: 1.5rem; }
             .hero-description { font-size: 0.88rem; }
             .hero-stats { gap: 1.25rem; }
             .hero-actions { flex-direction: column; width: 100%; }
@@ -1343,6 +1316,214 @@
             top: -4px; bottom: -10px;
         }
 
+        /* === AI CHAT WIDGET === */
+        .chat-toggle {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: none;
+            color: var(--primary-bg);
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: none;
+            z-index: 10000;
+            box-shadow: 0 8px 24px var(--accent-glow);
+            transition: all 0.35s var(--ease-out);
+        }
+        .chat-toggle:hover {
+            transform: scale(1.08);
+            box-shadow: 0 12px 32px var(--accent-glow);
+        }
+        .chat-toggle.open {
+            transform: rotate(90deg);
+        }
+        .chat-toggle .chat-icon-close { display: none; }
+        .chat-toggle.open .chat-icon-open { display: none; }
+        .chat-toggle.open .chat-icon-close { display: block; }
+
+        .chat-panel {
+            position: fixed;
+            bottom: 6rem;
+            right: 2rem;
+            width: 380px;
+            height: 520px;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            display: flex;
+            flex-direction: column;
+            z-index: 9999;
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(16px) scale(0.96);
+            transition: all 0.35s var(--ease-out);
+            box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+        }
+        .chat-panel.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+
+        .chat-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-shrink: 0;
+        }
+        .chat-header-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--green-accent);
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(93,255,162,0.5);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .chat-header-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+        .chat-header-subtitle {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.08) transparent;
+        }
+        .chat-messages::-webkit-scrollbar { width: 4px; }
+        .chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
+
+        .chat-msg {
+            max-width: 85%;
+            padding: 0.7rem 1rem;
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            line-height: 1.55;
+            animation: chatFadeIn 0.3s var(--ease-out);
+        }
+        .chat-msg.ai {
+            background: rgba(255,255,255,0.05);
+            color: var(--text-primary);
+            border-bottom-left-radius: 6px;
+            align-self: flex-start;
+        }
+        .chat-msg.user {
+            background: var(--accent);
+            color: var(--primary-bg);
+            border-bottom-right-radius: 6px;
+            align-self: flex-end;
+            font-weight: 500;
+        }
+
+        .chat-typing {
+            display: flex;
+            gap: 4px;
+            padding: 0.7rem 1rem;
+            align-self: flex-start;
+        }
+        .chat-typing span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            animation: typingDot 1.4s ease-in-out infinite;
+        }
+        .chat-typing span:nth-child(2) { animation-delay: 0.15s; }
+        .chat-typing span:nth-child(3) { animation-delay: 0.3s; }
+
+        @keyframes typingDot {
+            0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+            30% { opacity: 1; transform: translateY(-4px); }
+        }
+        @keyframes chatFadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chat-input-area {
+            padding: 0.85rem 1rem;
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            gap: 0.6rem;
+            align-items: center;
+            flex-shrink: 0;
+            background: rgba(0,0,0,0.2);
+        }
+        .chat-input {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-subtle);
+            border-radius: 100px;
+            padding: 0.6rem 1rem;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.3s ease;
+            cursor: none;
+        }
+        .chat-input::placeholder {
+            color: var(--text-muted);
+        }
+        .chat-input:focus {
+            border-color: var(--accent);
+        }
+        .chat-send {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: none;
+            color: var(--primary-bg);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: none;
+            transition: all 0.25s var(--ease-out);
+            flex-shrink: 0;
+        }
+        .chat-send:hover {
+            background: var(--accent-secondary);
+            transform: scale(1.08);
+        }
+
+        @media (max-width: 480px) {
+            .chat-panel {
+                right: 0.75rem;
+                left: 0.75rem;
+                bottom: 5.5rem;
+                width: auto;
+                height: 60vh;
+            }
+            .chat-toggle {
+                bottom: 1.25rem;
+                right: 1.25rem;
+                width: 48px;
+                height: 48px;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -1389,10 +1570,6 @@
     <!-- Hero -->
     <section class="hero">
         <div class="hero-content">
-            <div class="hero-badge">
-                <span class="badge-dot"></span>
-                <span>Premium Roblox Development</span>
-            </div>
             <h1>
                 <span class="line"><span class="line-inner">Crafting <span class="gradient-animated">Luminary</span></span></span>
                 <span class="line"><span class="line-inner">Games</span></span>
@@ -1556,6 +1733,26 @@
 
     <!-- Back to top -->
     <a href="#" class="back-to-top clickable" id="backToTop">↑</a>
+
+    <!-- AI Chat Widget -->
+    <button class="chat-toggle clickable" id="chatToggle" aria-label="Toggle chat">
+        <span class="chat-icon-open">💬</span>
+        <span class="chat-icon-close">✕</span>
+    </button>
+    <div class="chat-panel" id="chatPanel">
+        <div class="chat-header">
+            <div class="chat-header-dot"></div>
+            <span class="chat-header-title">Luminary AI</span>
+            <span class="chat-header-subtitle">Online</span>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-msg ai">Hey! 👋 I'm the Luminary AI assistant. Ask me anything about our games or services.</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" class="chat-input clickable" id="chatInput" placeholder="Type a message..." autocomplete="off">
+            <button class="chat-send clickable" id="chatSend" aria-label="Send">↑</button>
+        </div>
+    </div>
 
     <script>
         // === Stars ===
@@ -1818,6 +2015,62 @@
                 card.style.boxShadow = '';
             });
         });
+
+        // === Chat widget UI ===
+        (function() {
+            const toggle = document.getElementById('chatToggle');
+            const panel = document.getElementById('chatPanel');
+            const input = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('chatSend');
+            const messages = document.getElementById('chatMessages');
+
+            toggle.addEventListener('click', () => {
+                toggle.classList.toggle('open');
+                panel.classList.toggle('open');
+                if (panel.classList.contains('open')) {
+                    setTimeout(() => input.focus(), 350);
+                }
+            });
+
+            function addMessage(text, type) {
+                const msg = document.createElement('div');
+                msg.className = 'chat-msg ' + type;
+                msg.textContent = text;
+                messages.appendChild(msg);
+                messages.scrollTop = messages.scrollHeight;
+            }
+
+            function showTyping() {
+                const t = document.createElement('div');
+                t.className = 'chat-typing';
+                t.id = 'chatTyping';
+                t.innerHTML = '<span></span><span></span><span></span>';
+                messages.appendChild(t);
+                messages.scrollTop = messages.scrollHeight;
+                return t;
+            }
+
+            function sendMessage() {
+                const text = input.value.trim();
+                if (!text) return;
+                addMessage(text, 'user');
+                input.value = '';
+                // Simulate AI typing
+                const typing = showTyping();
+                setTimeout(() => {
+                    typing.remove();
+                    addMessage('Thanks for your message! AI responses are coming soon. In the meantime, reach out at hello@luminaryventures.com 🚀', 'ai');
+                }, 1200 + Math.random() * 800);
+            }
+
+            sendBtn.addEventListener('click', sendMessage);
+            input.addEventListener('keydown', e => {
+                if (e.key === 'Enter') sendMessage();
+            });
+
+            // Prevent chat scroll from triggering page smooth scroll
+            messages.addEventListener('wheel', e => e.stopPropagation());
+        })();
 
         // === Lenis smooth scroll with snap ===
         (function() {
