@@ -16,14 +16,18 @@
     <meta property="og:title" content="Luminary Ventures — Premium Roblox Game Development">
     <meta property="og:description" content="We craft captivating Roblox experiences that reach millions of players worldwide. From concept to infinity and beyond.">
     <meta property="og:url" content="https://luminary.spunnie.com/">
-    <meta property="og:image" content="https://luminary.spunnie.com/og-image.png">
+    <meta property="og:image" content="https://luminary.spunnie.com/logo.png">
     <meta property="og:locale" content="en_US">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Luminary Ventures — Premium Roblox Game Development">
     <meta name="twitter:description" content="We craft captivating Roblox experiences that reach millions of players worldwide.">
-    <meta name="twitter:image" content="https://luminary.spunnie.com/og-image.png">
+    <meta name="twitter:image" content="https://luminary.spunnie.com/logo.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://luminary.spunnie.com/">
@@ -35,6 +39,7 @@
         "@type": "Organization",
         "name": "Luminary Ventures",
         "url": "https://luminary.spunnie.com",
+        "logo": "https://luminary.spunnie.com/logo.png",
         "description": "Premium Roblox game development studio based in Seattle.",
         "location": {
             "@type": "Place",
@@ -272,14 +277,18 @@
         .logo-mark {
             width: 32px;
             height: 32px;
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
             border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.9rem;
+            overflow: hidden;
+            flex-shrink: 0;
             transform: rotate(-5deg);
             transition: transform 0.4s var(--ease-spring);
+        }
+
+        .logo-mark img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
         .logo:hover .logo-mark { transform: rotate(5deg) scale(1.1); }
@@ -1127,7 +1136,7 @@
     <!-- Navigation -->
     <nav id="nav">
         <a href="#" class="logo clickable">
-            <span class="logo-mark">✦</span>
+            <span class="logo-mark"><img src="logo.png" alt="Luminary Ventures logo" width="32" height="32"></span>
             <span class="gradient-animated">LUMINARY</span>
         </a>
         <button class="menu-toggle clickable" id="menuToggle" aria-label="Toggle menu">
