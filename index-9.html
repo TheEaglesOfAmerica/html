@@ -56,8 +56,20 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=General+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        html {
-            scroll-behavior: smooth;
+        html.lenis, html.lenis body {
+            height: auto;
+        }
+
+        .lenis.lenis-smooth {
+            scroll-behavior: auto !important;
+        }
+
+        .lenis.lenis-smooth [data-lenis-prevent] {
+            overscroll-behavior: contain;
+        }
+
+        .lenis.lenis-stopped {
+            overflow: hidden;
         }
 
         * {
@@ -549,11 +561,6 @@
             transform: translateY(0);
         }
 
-        /* Magnetic button hover effect */
-        .btn-magnetic {
-            transition: transform 0.35s var(--ease-out);
-        }
-
         .hero-actions {
             display: flex;
             gap: 1rem;
@@ -765,38 +772,6 @@
             text-transform: uppercase;
             letter-spacing: 0.1em;
             margin-top: 0.5rem;
-        }
-
-        /* === SCROLL INDICATOR === */
-        .scroll-indicator {
-            position: absolute;
-            bottom: 2.5rem;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.4rem;
-            color: var(--text-muted);
-            font-size: 0.65rem;
-            font-weight: 600;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            animation: scrollBounce 2.5s ease-in-out infinite;
-            transition: opacity 0.4s ease;
-            z-index: 5;
-        }
-
-        .scroll-indicator .scroll-line {
-            width: 1px;
-            height: 24px;
-            background: linear-gradient(to bottom, var(--accent), transparent);
-            border-radius: 1px;
-        }
-
-        @keyframes scrollBounce {
-            0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.4; }
-            50% { transform: translateX(-50%) translateY(8px); opacity: 0.8; }
         }
 
         /* === GAMES === */
@@ -1424,11 +1399,11 @@
             </h1>
             <p class="hero-description">We build quality Roblox experiences that continue to captivate millions, from concept to infinity and beyond.</p>
             <div class="hero-actions">
-                <a href="#contact" class="btn-primary btn-magnetic clickable">
+                <a href="#contact" class="btn-primary clickable">
                     <span>Start Your Project</span>
                     <span class="cta-arrow">→</span>
                 </a>
-                <a href="#games" class="btn-secondary btn-magnetic clickable">
+                <a href="#games" class="btn-secondary clickable">
                     <span>View Our Work</span>
                 </a>
             </div>
@@ -1442,10 +1417,6 @@
                     <div class="hero-stat-label">Games Shipped</div>
                 </div>
             </div>
-        </div>
-        <div class="scroll-indicator" id="scrollIndicator">
-            <span>Scroll</span>
-            <div class="scroll-line"></div>
         </div>
     </section>
 
@@ -1690,17 +1661,6 @@
 
         document.querySelectorAll('.metric-value[data-target]').forEach(el => counterObs.observe(el));
 
-        // === Smooth scroll ===
-        document.querySelectorAll('a[href^="#"]').forEach(a => {
-            a.addEventListener('click', e => {
-                const href = a.getAttribute('href');
-                if (href === '#') return;
-                e.preventDefault();
-                const t = document.querySelector(href);
-                if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            });
-        });
-
         // === Parallax hero ===
         const heroContent = document.querySelector('.hero-content');
         window.addEventListener('scroll', () => {
@@ -1840,19 +1800,6 @@
             }
         });
 
-        // === Magnetic button hover ===
-        document.querySelectorAll('.btn-magnetic').forEach(btn => {
-            btn.addEventListener('mousemove', e => {
-                const rect = btn.getBoundingClientRect();
-                const x = e.clientX - rect.left - rect.width / 2;
-                const y = e.clientY - rect.top - rect.height / 2;
-                btn.style.transform = `translate(${x * 0.15}px, ${y * 0.25}px)`;
-            });
-            btn.addEventListener('mouseleave', () => {
-                btn.style.transform = '';
-            });
-        });
-
         // === 3D tilt on game cards ===
         document.querySelectorAll('.game-card').forEach(card => {
             card.addEventListener('mousemove', e => {
@@ -1872,11 +1819,66 @@
             });
         });
 
-        // === Hide scroll indicator on scroll ===
-        const scrollInd = document.getElementById('scrollIndicator');
-        window.addEventListener('scroll', () => {
-            if (scrollInd) scrollInd.style.opacity = window.scrollY > 100 ? '0' : '';
-        }, { passive: true });
+        // === Lenis smooth scroll ===
+        (function() {
+            const html = document.documentElement;
+            let targetScroll = window.scrollY;
+            let currentScroll = window.scrollY;
+            let animating = false;
+            const lerp = 0.08;
+            const threshold = 0.5;
+
+            html.classList.add('lenis', 'lenis-smooth');
+
+            function onWheel(e) {
+                e.preventDefault();
+                targetScroll += e.deltaY;
+                targetScroll = Math.max(0, Math.min(targetScroll, document.body.scrollHeight - window.innerHeight));
+                if (!animating) { animating = true; raf(); }
+            }
+
+            function raf() {
+                currentScroll += (targetScroll - currentScroll) * lerp;
+                if (Math.abs(targetScroll - currentScroll) < threshold) {
+                    currentScroll = targetScroll;
+                    animating = false;
+                }
+                window.scrollTo(0, currentScroll);
+                if (animating) requestAnimationFrame(raf);
+            }
+
+            window.addEventListener('wheel', onWheel, { passive: false });
+
+            // Sync on touch / programmatic scroll
+            let touching = false;
+            window.addEventListener('touchstart', () => { touching = true; }, { passive: true });
+            window.addEventListener('touchend', () => {
+                touching = false;
+                targetScroll = window.scrollY;
+                currentScroll = window.scrollY;
+            }, { passive: true });
+            window.addEventListener('scroll', () => {
+                if (touching || !animating) {
+                    targetScroll = window.scrollY;
+                    currentScroll = window.scrollY;
+                }
+            }, { passive: true });
+
+            // Smooth anchor clicks
+            document.querySelectorAll('a[href^="#"]').forEach(a => {
+                a.addEventListener('click', e => {
+                    const href = a.getAttribute('href');
+                    if (href === '#') return;
+                    e.preventDefault();
+                    const t = document.querySelector(href);
+                    if (t) {
+                        targetScroll = t.getBoundingClientRect().top + window.scrollY;
+                        targetScroll = Math.max(0, Math.min(targetScroll, document.body.scrollHeight - window.innerHeight));
+                        if (!animating) { animating = true; raf(); }
+                    }
+                });
+            });
+        })();
 
     </script>
 </body>
